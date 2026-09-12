@@ -38,6 +38,16 @@ completely — verified, 0/2 truncations and byte-identical output lengths acros
 | `"Rewrite as a short, calm, jargon-free notice to customers, in two or three sentences."` | ok, 155 chars |
 | `"Rewrite as a precise two-sentence technical summary for engineers, keeping any technical terms exact."` | ok, 210 chars |
 
+**But the phrasing matters in ways we could not predict, which is the real
+problem.** `"in two or three sentences"` *fixes* the customer-notice instruction
+(0/2 truncated) and *causes* truncation on a different one — `"Rewrite as a
+seafaring pirate's announcement to the crew, in two or three sentences."` failed
+2/2, while both `"Rewrite as a pirate would say it, in two sentences."` and the
+completely unbounded `"Rewrite in the voice of a pirate."` succeeded 2/2 at ~105
+characters. So there is no rule an integrator can apply by reading the docs; every
+instruction has to be empirically tested against real audio, and a phrasing that
+works today gives no confidence about the next one.
+
 Dropping the unsatisfiable demand works as well as bounding the length
 (`"Rewrite as a brief, formal update for a senior executive."` → ok, 162 chars).
 Both point at the same mechanism: when the instruction asks for something the

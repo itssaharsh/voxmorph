@@ -31,6 +31,8 @@ export type Card = {
   requestTimeMs: number | null;
   attempts: number;
   retrying?: boolean;
+  /** Set when the human gate was used — the user corrected the AI's output. */
+  edited?: boolean;
   error?: { code: string; message: string; retryable: boolean };
 };
 

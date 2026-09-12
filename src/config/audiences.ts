@@ -24,7 +24,7 @@ export function getAudience(id: string): Audience | undefined {
 
 /** Preset wildcards — same audio, one more instruction. */
 export const WILDCARDS: { id: string; label: string; llm_instruction: string }[] = [
-  { id: "pirate", label: "Pirate", llm_instruction: "Rewrite as a seafaring pirate's announcement to the crew, in two or three sentences." },
+  { id: "pirate", label: "Pirate", llm_instruction: "Rewrite in the voice of a pirate." },
   { id: "kid", label: "Five-year-old", llm_instruction: "Rewrite in two or three short sentences a five-year-old would understand." },
   { id: "haiku", label: "Haiku", llm_instruction: "Rewrite as a haiku." },
 ];
