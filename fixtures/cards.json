@@ -1,0 +1,38 @@
+[
+  {
+    "id": "baseline",
+    "text": "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+    "llm_error": null,
+    "ms": 2757
+  },
+  {
+    "id": "boss",
+    "text": "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+    "llm_error": "truncated",
+    "ms": 3666
+  },
+  {
+    "id": "team",
+    "text": "Hey team,\n\nJust wanted to share a quick thought: instead of waiting for the company to provide everything, let's focus on what we can contribute to our shared goals.\n\n*   Take initiative on pending projects\n*   Proactively identify areas for improvement\n*   Support colleagues without being asked",
+    "llm_error": null,
+    "ms": 3248
+  },
+  {
+    "id": "public",
+    "text": "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+    "llm_error": "truncated",
+    "ms": 4479
+  },
+  {
+    "id": "tech",
+    "text": "The provided transcript contains a historical quote and does not include system names, versions, or error codes. As the task requires rewriting as a precise engineering summary with these specific elements, and the content does not apply, the transcript is returned unchanged.\n\nAnd so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+    "llm_error": null,
+    "ms": 3356
+  },
+  {
+    "id": "family",
+    "text": "Hey, just wanted to share that famous line about asking what we can do for our country instead of what it can do for us. It's such a powerful reminder of our shared responsibility, even if it sounds a bit serious for a casual chat!",
+    "llm_error": null,
+    "ms": 1944
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "baseline",
+    "label": "Cleaned",
+    "icon": "Sparkles",
+    "tint": "amber",
+    "llm_instruction": null
+  },
+  {
+    "id": "boss",
+    "label": "Your Boss",
+    "icon": "Briefcase",
+    "tint": "blue",
+    "llm_instruction": "Rewrite as a two-sentence update for a senior executive, leading with the outcome."
+  },
+  {
+    "id": "team",
+    "label": "Your Team",
+    "icon": "Users",
+    "tint": "green",
+    "llm_instruction": "Rewrite as a direct message to teammates, with any action items as a short bulleted list."
+  },
+  {
+    "id": "public",
+    "label": "The Public",
+    "icon": "Globe",
+    "tint": "purple",
+    "llm_instruction": "Rewrite as a short, calm, jargon-free notice to customers, in two or three sentences."
+  },
+  {
+    "id": "tech",
+    "label": "Technical",
+    "icon": "Code",
+    "tint": "cyan",
+    "llm_instruction": "Rewrite as a precise two-sentence technical summary for engineers, keeping any technical terms exact."
+  },
+  {
+    "id": "family",
+    "label": "Family",
+    "icon": "Heart",
+    "tint": "rose",
+    "llm_instruction": "Rewrite as one or two warm, casual sentences for a friend with no technical background."
+  }
+]
