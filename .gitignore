@@ -46,3 +46,7 @@ next-env.d.ts
 # Impeccable build/review scratch
 .impeccable/review/
 .impeccable/build/
+
+# Generated voiceover audio (regenerate with scripts/make-voiceover.mjs)
+voiceover/*.wav
+voiceover/voices/*.wav
