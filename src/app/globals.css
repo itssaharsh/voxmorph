@@ -1,65 +1,137 @@
 @import "tailwindcss";
 
+/* ─────────────────────────────────────────────────────────────
+   THE INTERPRETATION BOOTH
+   A delegate console in a dimmed assembly hall. The ground is hall
+   dark, not terminal dark; surfaces are anodized panel; legends are
+   engraved fill; identity is carried by numbered channels and their
+   lamps, never by tinted card furniture.
+   ───────────────────────────────────────────────────────────── */
+
 @theme inline {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", Menlo, monospace;
+  --font-sans: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
+  --font-legend: var(--font-barlow-condensed), var(--font-barlow), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-azeret), ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 @theme {
-  --animate-cascade: cascade 340ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-strike: strike 380ms ease-out both;
-  --animate-breathe: breathe 2.4s ease-in-out infinite;
-  --animate-rise: rise 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* Hall and console material */
+  --color-hall: #0C1A1D;
+  --color-hall-deep: #071113;
+  --color-panel: #16282B;
+  --color-panel-raised: #1E3438;
+  --color-bevel: #2C4A4F;
+  --color-bevel-lit: #3E6970;
+  --color-focus: #6BA3AB;        /* 5.43:1 on panel */
+
+  /* Engraved legend fill */
+  --color-engrave: #DDE6E3;
+  --color-engrave-dim: #93A9A8;
+  --color-engrave-faint: #7A9997;   /* 4.98:1 on panel */
+
+  /* The one action colour: the live tally and the talk key wear it, nothing else */
+  --color-live: #E4572E;         /* key body and tally fill */
+  --color-live-text: #F98363;    /* 6.16:1 on panel, for live text at body size */
+
+  /* Channel lamps. Systematic identifiers, not decoration: they appear only as
+     the lamp itself and the channel rule, never as a filled field. */
+  --color-lamp-floor: #F2EDDF;
+  --color-lamp-clean: #E8B44A;
+  --color-lamp-boss: #5BA3D0;
+  --color-lamp-team: #57B894;
+  --color-lamp-public: #B78BD9;
+  --color-lamp-tech: #4FC3D9;
+  --color-lamp-family: #E08CA8;
+  --color-lamp-wild: #C9A227;
+
+  /* One radius rule: 2px machined edge everywhere. The talk key is the single
+     exception and is a true circle, because it is a physical push-button. */
+  --radius-panel: 2px;
+
+  --animate-patch: patch 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-lamp: lamp 220ms ease-out both;
 }
 
-@keyframes cascade {
-  from { opacity: 0; transform: translate3d(22px, 8px, 0) scale(0.985); }
-  to   { opacity: 1; transform: none; }
+/* A channel is patched into the rack: it seats downward and settles. */
+@keyframes patch {
+  from { opacity: 0; transform: translate3d(0, -10px, 0); clip-path: inset(0 0 100% 0); }
+  to   { opacity: 1; transform: none; clip-path: inset(0 0 0 0); }
 }
-@keyframes rise {
-  from { opacity: 0; transform: translate3d(0, 6px, 0); }
-  to   { opacity: 1; transform: none; }
-}
-@keyframes strike {
-  from { opacity: 1; }
-  to   { opacity: 0.32; }
-}
-@keyframes breathe {
-  0%, 100% { opacity: 0.55; transform: scale(1); }
-  50%      { opacity: 1;    transform: scale(1.04); }
+@keyframes lamp {
+  from { opacity: 0.25; }
+  to   { opacity: 1; }
 }
 
-/* The recording ring scales from real mic RMS, set as a CSS var from JS. */
-@property --vx-level {
-  syntax: "<number>";
-  inherits: false;
-  initial-value: 0;
+html {
+  color-scheme: dark;
+  /* The hall: dimmed, with the console lit from its own surface. */
+  background:
+    radial-gradient(120% 80% at 50% 0%, #12262A 0%, var(--color-hall) 42%, var(--color-hall-deep) 100%)
+    fixed;
 }
 
-html { color-scheme: dark; }
+body { color: var(--color-engrave); }
 
-body {
-  background: #020617; /* slate-950 */
-  color: #f1f5f9;      /* slate-100 */
+/* Browser surfaces carry the design too. */
+::selection { background: #3E6970; color: #F4FAF9; }
+* { scrollbar-width: thin; scrollbar-color: var(--color-bevel) transparent; }
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-thumb { background: var(--color-bevel); border-radius: 0; }
+*::-webkit-scrollbar-track { background: var(--color-hall-deep); }
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
-/* Struck-through filler: the word the API's own cleanup removed. */
-.vx-removed {
-  position: relative;
-  color: #64748b;
+/* Anodized panel: a fine vertical brush, a lit top bevel, a dark seat below. */
+.vx-panel {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0) 38%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 3px),
+    var(--color-panel);
+  border: 1px solid var(--color-bevel);
+  border-top-color: var(--color-bevel-lit);
+  border-radius: var(--radius-panel);
+}
+
+/* Engraved legend: cut into the panel, so it carries a light lower edge. */
+.vx-legend {
+  font-family: var(--font-legend);
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--color-engrave-dim);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.05);
+}
+
+/* A word the API's own cleanup removed from the floor feed. */
+.vx-struck {
+  color: var(--color-engrave-faint);
   text-decoration: line-through;
-  text-decoration-color: #f59e0b;
-  text-decoration-thickness: 2px;
-  animation: var(--animate-strike);
+  text-decoration-color: var(--color-live);
+  text-decoration-thickness: 1.5px;
 }
 
-::selection { background: #f59e0b33; }
+/* Uncertain reception on the floor channel. */
+.vx-uncertain {
+  text-decoration: underline dotted;
+  text-decoration-color: color-mix(in oklab, var(--color-lamp-clean) 70%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+}
 
-/* Thin, dark scrollbars so panels don't get a bright gutter on Windows. */
-* { scrollbar-width: thin; scrollbar-color: #1e293b transparent; }
-*::-webkit-scrollbar { width: 8px; height: 8px; }
-*::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
-*::-webkit-scrollbar-track { background: transparent; }
+/* The console deck: a scrim so the fixed talk key never sits on live text. */
+.vx-deck::before {
+  content: "";
+  position: absolute;
+  inset: -150px 0 0 0;
+  pointer-events: none;
+  /* Opaque before the label line, so scrolling content never reads through it. */
+  background: linear-gradient(180deg,
+    transparent 0%,
+    color-mix(in oklab, var(--color-hall) 70%, transparent) 30%,
+    var(--color-hall) 48%,
+    var(--color-hall) 100%);
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

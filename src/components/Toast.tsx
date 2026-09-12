@@ -14,23 +14,22 @@ export function Toast({ toast, onDone }: { toast: ToastState; onDone: () => void
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 bottom-32 z-50 flex justify-center px-4"
+      className="pointer-events-none fixed inset-x-0 bottom-36 z-50 flex justify-center px-4"
       aria-live="polite"
       aria-atomic="true"
     >
       {toast && (
         <div
           key={toast.id}
-          className={`animate-rise flex items-center gap-2 rounded-full border px-4 py-2 text-sm shadow-lg backdrop-blur ${
-            toast.kind === "ok"
-              ? "border-amber-500/30 bg-slate-900/90 text-amber-200"
-              : "border-rose-500/30 bg-slate-900/90 text-rose-200"
-          }`}
+          className="vx-panel animate-lamp flex items-center gap-2 px-3.5 py-2 font-mono text-[12px] shadow-lg"
+          style={{
+            color: toast.kind === "ok" ? "var(--color-lamp-team)" : "var(--color-live)",
+          }}
         >
           {toast.kind === "ok" ? (
-            <Check className="size-4 shrink-0" aria-hidden />
+            <Check className="size-3.5 shrink-0" aria-hidden />
           ) : (
-            <TriangleAlert className="size-4 shrink-0" aria-hidden />
+            <TriangleAlert className="size-3.5 shrink-0" aria-hidden />
           )}
           {toast.message}
         </div>

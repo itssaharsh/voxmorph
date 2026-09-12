@@ -165,7 +165,7 @@ export function useRecorder(onError?: (msg: string) => void) {
       return { wav, durationMs: Math.round(heldMs) };
     } catch {
       setStatus("idle");
-      onError?.("Couldn't process that audio — try again.");
+      onError?.("Could not process that audio. Try again.");
       return null;
     }
   }, [teardown, onError]);

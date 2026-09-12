@@ -42,3 +42,7 @@ next-env.d.ts
 
 # but DO commit the template
 !.env.example
+
+# Impeccable build/review scratch
+.impeccable/review/
+.impeccable/build/
