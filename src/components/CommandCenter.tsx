@@ -140,12 +140,12 @@ export function CommandCenter({ seed, forceJson }: { seed?: Partial<State>; forc
 
       {state.isExample && (
         <p className="mt-2 text-[12px] text-[var(--color-engrave-faint)]">
-          A saved example from a real API response. Hold the key to run your own.
+          Saved example from a real API response.
         </p>
       )}
 
       {/* The rack */}
-      <div className="mt-8 flex items-baseline justify-between gap-4 border-b border-[var(--color-bevel)] pb-2">
+      <div className="mt-6 flex items-baseline justify-between gap-4 border-b border-[var(--color-bevel)] pb-2 sm:mt-8">
         <span className="vx-legend text-[11px]">Channels</span>
         {state.summary && (
           <span className="font-mono text-[11px] tabular-nums text-[var(--color-engrave-faint)]">

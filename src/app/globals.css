@@ -28,6 +28,7 @@
   --color-engrave: #DDE6E3;
   --color-engrave-dim: #93A9A8;
   --color-engrave-faint: #7A9997;   /* 4.98:1 on panel */
+  --color-engrave-faint-raised: #86A5A3; /* 4.94:1 on the raised floor panel */
 
   /* The one action colour: the live tally and the talk key wear it, nothing else */
   --color-live: #E4572E;         /* key body and tally fill */
@@ -121,6 +122,9 @@ textarea, input { caret-color: var(--color-live-text); }
   border-radius: var(--radius-panel);
   box-shadow: 0 10px 26px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.07);
 }
+
+/* The raised floor is a lighter ground, so faint text rebinds to keep its 4.5 floor. */
+.vx-floor { --color-engrave-faint: var(--color-engrave-faint-raised); }
 
 /* Engraved legend: cut into the panel, so it carries a light lower edge. */
 .vx-legend {

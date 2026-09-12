@@ -30,7 +30,7 @@ export function FloorFeed({ transcript, loading }: { transcript: Transcript | nu
   }, [transcript]);
 
   return (
-    <section className="vx-floor px-4 py-5 sm:px-7 sm:py-6">
+    <section className="vx-floor px-4 py-4 sm:px-7 sm:py-6">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <div className="flex items-center gap-2.5">
           <Lamp tint="floor" lit={!!transcript} />
@@ -53,7 +53,7 @@ export function FloorFeed({ transcript, loading }: { transcript: Transcript | nu
         )}
       </div>
 
-      <div className="mt-3.5 border-t border-[var(--color-bevel)] pt-3.5">
+      <div className="mt-3 border-t border-[var(--color-bevel)] pt-3 sm:mt-3.5 sm:pt-3.5">
         {loading && !transcript ? (
           <div className="space-y-2.5" aria-hidden>
             <div className="h-3.5 w-11/12 animate-pulse bg-[var(--color-panel-raised)]" />
@@ -63,7 +63,7 @@ export function FloorFeed({ transcript, loading }: { transcript: Transcript | nu
           <p className="text-[15px] text-[var(--color-engrave-faint)]">Channel open. Hold the key and speak.</p>
         ) : (
           <p
-            className="max-w-[44rem] font-mono text-[19px] leading-[1.62] sm:text-[26px] sm:leading-[1.55] text-[var(--color-engrave)]"
+            className="max-w-[44rem] font-mono text-[16px] leading-[1.55] sm:text-[26px] sm:leading-[1.55] text-[var(--color-engrave)]"
             aria-live="polite"
           >
             {cleaned
@@ -85,7 +85,7 @@ export function FloorFeed({ transcript, loading }: { transcript: Transcript | nu
       </div>
 
       {transcript && (
-        <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-1 border-t border-[var(--color-bevel)] pt-3">
+        <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1 border-t border-[var(--color-bevel)] pt-2.5 sm:mt-4 sm:gap-x-6 sm:pt-3">
           <Readout label="signal" value={`${(transcript.confidence * 100).toFixed(1)}%`} />
           <Readout label="words" value={String(transcript.words.length)} />
           <Readout label="length" value={`${(transcript.audioDurationMs / 1000).toFixed(1)}s`} />

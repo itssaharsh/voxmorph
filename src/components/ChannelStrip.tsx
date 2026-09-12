@@ -75,7 +75,7 @@ export function ChannelStrip({ card, channel, tint, index, onCopy, onRetry, onEd
             className="w-full resize-y border border-[var(--color-bevel-lit)] bg-[var(--color-hall-deep)] p-2.5 text-[15px] leading-relaxed text-[var(--color-engrave)] outline-none"
           />
         ) : (
-          <p className="max-w-[34rem] text-[15px] leading-[1.65] whitespace-pre-wrap text-[var(--color-engrave)]">
+          <p className="max-w-[28rem] text-[15px] leading-[1.65] whitespace-pre-wrap text-[var(--color-engrave)]">
             {card.text ?? (
               <span className="text-[var(--color-engrave-faint)]">
                 {card.error?.message ?? "No signal on this channel."}
