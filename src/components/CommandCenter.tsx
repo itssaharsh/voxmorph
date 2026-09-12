@@ -91,7 +91,7 @@ export function CommandCenter({ seed, forceJson }: { seed?: Partial<State>; forc
       {/* Console header */}
       <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-[var(--color-bevel)] py-4">
         <div className="flex items-baseline gap-3">
-          <span className="font-[family-name:var(--font-legend)] text-[22px] font-600 tracking-[0.2em] text-[var(--color-engrave)] uppercase">
+          <span className="font-[family-name:var(--font-legend)] text-[22px] font-semibold tracking-[0.2em] text-[var(--color-engrave)] uppercase">
             Voxmorph
           </span>
           <span className="hidden text-[13px] text-[var(--color-engrave-faint)] sm:inline">
