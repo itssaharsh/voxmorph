@@ -3,8 +3,10 @@
 Speak once → the utterance is rewritten for 5 audiences via AssemblyAI Dictation
 `llm_instruction`. No other LLM in the stack.
 
-## AssemblyAI Dictation API — VERIFIED FACTS (do not re-derive; the original battle
-## plan in docs/BATTLE-PLAN.md is WRONG on the three points marked ⚠)
+## AssemblyAI Dictation API — VERIFIED FACTS
+
+Verified against the live API. Do not re-derive them. The three marked ⚠ are the
+ones that are counterintuitive and cost real time to discover.
 
 - `POST https://dictation.assemblyai.com/v1/transcribe/live`
 - Auth: `Authorization: <RAW_KEY>` — **no `Bearer`**. Invalid key → **404** (not 401).
