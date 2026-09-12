@@ -12,5 +12,8 @@ export default async function Page({
   const forceJson = sp.stream === "0";
   // ?fresh=1 opens on the empty state instead of the saved example.
   const seed = sp.fresh === "1" ? undefined : demoSeed;
-  return <CommandCenter seed={seed} forceJson={forceJson} />;
+  // ?demo=fail induces a real rewrite failure on one channel so the relay and retry
+  // states can be filmed deterministically. See the route for why it is honest.
+  const demoFail = sp.demo === "fail";
+  return <CommandCenter seed={seed} forceJson={forceJson} demoFail={demoFail} />;
 }

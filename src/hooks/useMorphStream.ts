@@ -21,10 +21,11 @@ export function useMorphStream(dispatch: (a: Action) => void) {
   const abortRef = useRef<AbortController | null>(null);
 
   const post = useCallback(
-    async (wav: Blob, opts: { lang: string; audiences?: string[]; stream: boolean }) => {
+    async (wav: Blob, opts: { lang: string; audiences?: string[]; stream: boolean; demoFail?: boolean }) => {
       const params = new URLSearchParams({ lang: opts.lang });
       if (opts.audiences?.length) params.set("audiences", opts.audiences.join(","));
       if (!opts.stream) params.set("stream", "0");
+      if (opts.demoFail) params.set("demo", "fail");
       return fetch(`/api/morph?${params}`, {
         method: "POST",
         headers: { "Content-Type": "audio/wav" },
@@ -36,7 +37,7 @@ export function useMorphStream(dispatch: (a: Action) => void) {
   );
 
   const morph = useCallback(
-    async (wav: Blob, opts: { lang: string; audiences?: string[]; forceJson?: boolean }) => {
+    async (wav: Blob, opts: { lang: string; audiences?: string[]; forceJson?: boolean; demoFail?: boolean }) => {
       abortRef.current?.abort();
       abortRef.current = new AbortController();
 

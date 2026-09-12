@@ -35,6 +35,18 @@ export async function GET() {
 
 type Job = { id: string; label: string; llm_instruction: string | null };
 
+/** `?demo=fail` swaps one channel to this instruction so the relay and retry states
+ *  can be filmed without waiting for a real 429 on camera.
+ *
+ *  The failure it produces is a REAL `llm_error` from the API, not a simulated one:
+ *  asking for a thousand-word report overruns the rewrite's output cap whatever the
+ *  audio says, so the service discards the result and returns llm_error "truncated".
+ *  Measured 4 of 4 across two different clips. Content-demanding phrasings also
+ *  truncate but only on audio that cannot satisfy them, which makes them useless
+ *  once the demo clip changes; this one fails on output length, so it holds. */
+const KNOWN_TRUNCATING_INSTRUCTION =
+  "Expand this into a detailed thousand-word formal report with an executive summary, background section, methodology, findings, risk analysis, and appendix.";
+
 function resolveJobs(param: string | null): Job[] {
   if (!param) return AUDIENCES.map((a: Audience) => ({ id: a.id, label: a.label, llm_instruction: a.llm_instruction }));
   const jobs: Job[] = [];
@@ -80,6 +92,12 @@ export async function POST(req: Request) {
   const langParam = url.searchParams.get("lang") ?? "en";
   const language = (ALL_LANGUAGE_CODES as readonly string[]).includes(langParam) ? langParam : "en";
   const jobs = resolveJobs(url.searchParams.get("audiences"));
+  // Demo affordance: induce a genuine rewrite failure on one channel so the relay
+  // and retry states can be filmed without waiting for a real 429 on camera.
+  if (url.searchParams.get("demo") === "fail") {
+    const target = jobs.find((j) => j.id === "tech") ?? jobs.find((j) => j.id !== BASELINE_ID);
+    if (target) target.llm_instruction = KNOWN_TRUNCATING_INSTRUCTION;
+  }
   const utteranceId = `u_${Date.now().toString(36)}`;
 
   let audio: Buffer;

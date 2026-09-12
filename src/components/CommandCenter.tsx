@@ -24,7 +24,7 @@ const tintOf = (id: string) => getAudience(id)?.tint ?? "wild";
 const labelOf = (id: string) =>
   getAudience(id)?.label ?? WILDCARDS.find((w) => w.id === id)?.label ?? id;
 
-export function CommandCenter({ seed, forceJson }: { seed?: Partial<State>; forceJson?: boolean }) {
+export function CommandCenter({ seed, forceJson, demoFail }: { seed?: Partial<State>; forceJson?: boolean; demoFail?: boolean }) {
   const [state, dispatch] = useReducer(
     reducer,
     seed ? { ...initialState, ...seed, isExample: true, status: "ready" as const } : initialState
@@ -64,9 +64,9 @@ export function CommandCenter({ seed, forceJson }: { seed?: Partial<State>; forc
       if (!result) { dispatch({ type: "reset" }); return; }
       lastWav.current = result.wav;
       dispatch({ type: "recording:stop" });
-      await morph(result.wav, { lang: state.language, forceJson });
+      await morph(result.wav, { lang: state.language, forceJson, demoFail });
     })();
-  }, [recorder, morph, state.language, forceJson]);
+  }, [recorder, morph, state.language, forceJson, demoFail]);
 
   const copy = useCallback(async (text: string) => {
     try {
@@ -79,8 +79,8 @@ export function CommandCenter({ seed, forceJson }: { seed?: Partial<State>; forc
 
   const patchOne = useCallback((id: string) => {
     if (!lastWav.current) { say("Speak once first.", "warn"); return; }
-    void morph(lastWav.current, { lang: state.language, audiences: [id], forceJson });
-  }, [morph, state.language, forceJson, say]);
+    void morph(lastWav.current, { lang: state.language, audiences: [id], forceJson, demoFail });
+  }, [morph, state.language, forceJson, demoFail, say]);
 
   const busy = state.status === "processing";
   const cards = state.order.map((id) => state.cards[id]).filter(Boolean);
