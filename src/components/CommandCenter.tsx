@@ -91,10 +91,10 @@ export function CommandCenter({ seed, forceJson }: { seed?: Partial<State>; forc
       {/* Console header */}
       <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-[var(--color-bevel)] py-4">
         <div className="flex items-baseline gap-3">
-          <span className="font-[family-name:var(--font-legend)] text-[19px] font-600 tracking-[0.2em] text-[var(--color-engrave)] uppercase">
+          <span className="font-[family-name:var(--font-legend)] text-[22px] font-600 tracking-[0.2em] text-[var(--color-engrave)] uppercase">
             Voxmorph
           </span>
-          <span className="hidden font-mono text-[11px] text-[var(--color-engrave-faint)] sm:inline">
+          <span className="hidden text-[13px] text-[var(--color-engrave-faint)] sm:inline">
             one voice in, six channels out
           </span>
         </div>
@@ -139,7 +139,7 @@ export function CommandCenter({ seed, forceJson }: { seed?: Partial<State>; forc
       </div>
 
       {state.isExample && (
-        <p className="mt-2 font-mono text-[11px] text-[var(--color-engrave-faint)]">
+        <p className="mt-2 text-[12px] text-[var(--color-engrave-faint)]">
           A saved example from a real API response. Hold the key to run your own.
         </p>
       )}
@@ -158,11 +158,11 @@ export function CommandCenter({ seed, forceJson }: { seed?: Partial<State>; forc
       </div>
 
       {cards.length === 0 && state.pending.length === 0 ? (
-        <p className="mt-6 font-mono text-[13px] text-[var(--color-engrave-faint)]">
+        <p className="mt-6 text-[15px] text-[var(--color-engrave-faint)]">
           Five audience channels patch in here, plus the API&apos;s own cleanup on channel 01.
         </p>
       ) : (
-        <div className="mt-3 flex flex-col gap-2">
+        <div className="vx-rack mt-3">
           {cards.map((card, i) => (
             <ChannelStrip
               key={card.id}
@@ -195,7 +195,7 @@ export function CommandCenter({ seed, forceJson }: { seed?: Partial<State>; forc
               type="button"
               onClick={() => patchOne(w.id)}
               disabled={busy}
-              className="vx-panel px-3 py-1 font-mono text-[11px] text-[var(--color-engrave-dim)] transition-[color,border-color,transform] hover:border-[var(--color-bevel-lit)] hover:text-[var(--color-engrave)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40"
+              className="vx-panel px-3 py-1 text-[12px] text-[var(--color-engrave-dim)] transition-[color,border-color,transform] hover:border-[var(--color-bevel-lit)] hover:text-[var(--color-engrave)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40"
             >
               {w.label}
             </button>
@@ -203,7 +203,7 @@ export function CommandCenter({ seed, forceJson }: { seed?: Partial<State>; forc
         </div>
       )}
 
-      <footer className="mt-auto border-t border-[var(--color-bevel)] pt-5 pb-2 font-mono text-[11px] leading-relaxed text-[var(--color-engrave-faint)]">
+      <footer className="mt-auto border-t border-[var(--color-bevel)] pt-5 pb-2 text-[13px] leading-relaxed text-[var(--color-engrave-faint)]">
         <p>
           Every channel above is a separate{" "}
           <code className="text-[var(--color-engrave-dim)]">llm_instruction</code> on the{" "}

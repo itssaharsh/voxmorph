@@ -31,7 +31,8 @@ export const viewport: Viewport = {
   themeColor: "#0C1A1D",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  // No maximumScale: pinch-zoom stays available. The talk key suppresses
+  // double-tap zoom locally via touch-action, which is the narrower tool.
 };
 
 /**

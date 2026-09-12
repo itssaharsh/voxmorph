@@ -74,6 +74,7 @@ body { color: var(--color-engrave); }
 
 /* Browser surfaces carry the design too. */
 ::selection { background: #3E6970; color: #F4FAF9; }
+textarea, input { caret-color: var(--color-live-text); }
 * { scrollbar-width: thin; scrollbar-color: var(--color-bevel) transparent; }
 *::-webkit-scrollbar { width: 9px; height: 9px; }
 *::-webkit-scrollbar-thumb { background: var(--color-bevel); border-radius: 0; }
@@ -92,6 +93,33 @@ body { color: var(--color-engrave); }
   border: 1px solid var(--color-bevel);
   border-top-color: var(--color-bevel-lit);
   border-radius: var(--radius-panel);
+}
+
+/* The rack: one continuous faceplate. Channels are seated into it and divided by
+   hairlines, rather than floating as six identical detached panels. */
+.vx-rack {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0) 22%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 3px),
+    var(--color-panel);
+  border: 1px solid var(--color-bevel);
+  border-top-color: var(--color-bevel-lit);
+  border-radius: var(--radius-panel);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+}
+.vx-rack > * + * { border-top: 1px solid color-mix(in oklab, var(--color-bevel) 78%, transparent); }
+
+/* Channel 00 is mounted in the console, not laid on it: a lighter faceplate and a
+   real seat below, so the hero channel does not share its subordinates' weight. */
+.vx-floor {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0) 34%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.014) 0 1px, transparent 1px 3px),
+    var(--color-panel-raised);
+  border: 1px solid var(--color-bevel);
+  border-top-color: var(--color-bevel-lit);
+  border-radius: var(--radius-panel);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.07);
 }
 
 /* Engraved legend: cut into the panel, so it carries a light lower edge. */

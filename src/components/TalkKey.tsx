@@ -61,10 +61,10 @@ export function TalkKey({ status, level, busy, recordingMs, onStart, onStop }: P
 
   return (
     <div className="vx-deck pointer-events-none fixed inset-x-0 bottom-0 z-40 flex flex-col items-center gap-2.5 pt-10 pb-7">
-      <div className="h-4 font-mono text-[11px] tabular-nums">
+      <div className="h-5 text-[13px]">
         {recording ? (
           <span className="relative text-[var(--color-live-text)]">
-            MIC LIVE {(recordingMs / 1000).toFixed(1)}s · release to send
+            MIC LIVE <span className="font-mono tabular-nums">{(recordingMs / 1000).toFixed(1)}s</span> · release to send
           </span>
         ) : working ? (
           <span className="relative text-[var(--color-engrave-dim)]">patching channels</span>
@@ -100,10 +100,10 @@ export function TalkKey({ status, level, busy, recordingMs, onStart, onStop }: P
           style={{
             background: recording
               ? "linear-gradient(180deg, #F07A55 0%, var(--color-live) 55%, #A83A1C 100%)"
-              : "linear-gradient(180deg, var(--color-bevel-lit) 0%, var(--color-panel-raised) 48%, #0E2023 100%)",
+              : "linear-gradient(180deg, #47787F 0%, var(--color-panel-raised) 48%, #0E2023 100%)",
             boxShadow: recording
               ? "0 2px 0 #8C2F16, 0 10px 22px rgba(228,87,46,0.30), inset 0 1px 0 rgba(255,255,255,0.30)"
-              : "0 3px 0 #0A1719, 0 10px 20px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.16)",
+              : "0 3px 0 #0A1719, 0 10px 20px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.16), 0 0 0 1px color-mix(in oklab, var(--color-live) 55%, transparent)",
           }}
         />
 
@@ -128,7 +128,7 @@ export function TalkKey({ status, level, busy, recordingMs, onStart, onStop }: P
           )}
         </svg>
 
-        <span className="relative text-[var(--color-engrave)]">
+        <span className={`relative ${recording ? "text-[#2B0F06]" : "text-[var(--color-live-text)]"}`}>
           {working ? (
             <Loader2 className="size-6 animate-spin" aria-hidden style={{ pointerEvents: "none" }} />
           ) : (

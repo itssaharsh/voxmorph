@@ -30,21 +30,19 @@ export function FloorFeed({ transcript, loading }: { transcript: Transcript | nu
   }, [transcript]);
 
   return (
-    <section className="vx-panel px-4 py-4 sm:px-6 sm:py-5">
+    <section className="vx-floor px-4 py-5 sm:px-7 sm:py-6">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <div className="flex items-center gap-2.5">
           <Lamp tint="floor" lit={!!transcript} />
           <span className="vx-legend text-[11px]">CH 00 · Floor</span>
-          <span className="font-mono text-[11px] text-[var(--color-engrave-faint)]">
-            as spoken
-          </span>
+          <span className="text-[12px] text-[var(--color-engrave-faint)]">as spoken</span>
         </div>
 
         {transcript?.clean && (
           <div className="flex items-center gap-3">
             {removed > 0 && (
-              <span className="font-mono text-[11px] tabular-nums text-[var(--color-lamp-clean)]">
-                {removed} removed by the API
+              <span className="text-[12px] text-[var(--color-lamp-clean)]">
+                <span className="font-mono tabular-nums">{removed}</span> removed by the API
               </span>
             )}
             <div className="flex border border-[var(--color-bevel)]" role="group" aria-label="Floor feed view">
@@ -62,12 +60,10 @@ export function FloorFeed({ transcript, loading }: { transcript: Transcript | nu
             <div className="h-3.5 w-8/12 animate-pulse bg-[var(--color-panel-raised)]" />
           </div>
         ) : !transcript ? (
-          <p className="font-mono text-sm text-[var(--color-engrave-faint)]">
-            Channel open. Hold the key and speak.
-          </p>
+          <p className="text-[15px] text-[var(--color-engrave-faint)]">Channel open. Hold the key and speak.</p>
         ) : (
           <p
-            className="max-w-[72ch] font-mono text-[15px] leading-[1.75] text-[var(--color-engrave)]"
+            className="max-w-[44rem] font-mono text-[19px] leading-[1.62] sm:text-[26px] sm:leading-[1.55] text-[var(--color-engrave)]"
             aria-live="polite"
           >
             {cleaned

@@ -39,7 +39,7 @@ export function ChannelStrip({ card, channel, tint, index, onCopy, onRetry, onEd
 
   return (
     <article
-      className="vx-panel animate-patch grid grid-cols-[auto_1fr] items-start gap-x-4 gap-y-2 px-4 py-4 sm:grid-cols-[7.5rem_1fr] sm:gap-x-6 sm:px-6"
+      className="animate-patch grid grid-cols-[auto_1fr] items-start gap-x-4 gap-y-2 px-4 py-5 sm:grid-cols-[7.5rem_1fr] sm:gap-x-6 sm:px-6"
       style={{ animationDelay: `${Math.min(index, 6) * 65}ms` }}
     >
       {/* Channel selector: number, lamp, engraved name */}
@@ -75,7 +75,7 @@ export function ChannelStrip({ card, channel, tint, index, onCopy, onRetry, onEd
             className="w-full resize-y border border-[var(--color-bevel-lit)] bg-[var(--color-hall-deep)] p-2.5 text-[15px] leading-relaxed text-[var(--color-engrave)] outline-none"
           />
         ) : (
-          <p className="max-w-[70ch] text-[15px] leading-[1.65] whitespace-pre-wrap text-[var(--color-engrave)]">
+          <p className="max-w-[34rem] text-[15px] leading-[1.65] whitespace-pre-wrap text-[var(--color-engrave)]">
             {card.text ?? (
               <span className="text-[var(--color-engrave-faint)]">
                 {card.error?.message ?? "No signal on this channel."}
@@ -91,19 +91,19 @@ export function ChannelStrip({ card, channel, tint, index, onCopy, onRetry, onEd
                 failed rewrite does when it falls back to the baseline cleanup. */}
             {relayed && (
               <span
-                className="font-mono text-[11px] text-[var(--color-lamp-clean)]"
+                className="text-[12px] text-[var(--color-lamp-clean)]"
                 title={`The rewrite did not complete (llm_error: ${card.llmError}). Showing the API's cleaned floor text.`}
               >
-                {card.retrying ? "relaying, retrying" : `relayed from floor · ${card.llmError}`}
+                {card.retrying ? "relaying, retrying" : <>relayed from floor · <span className="font-mono">{card.llmError}</span></>}
               </span>
             )}
             {dead && (
-              <span className="font-mono text-[11px] text-[var(--color-live-text)]">
-                channel down · {card.error?.code}
+              <span className="text-[12px] text-[var(--color-live-text)]">
+                channel down · <span className="font-mono">{card.error?.code}</span>
               </span>
             )}
             {card.edited && (
-              <span className="font-mono text-[11px] text-[var(--color-engrave-faint)]">edited</span>
+              <span className="text-[12px] text-[var(--color-engrave-faint)]">edited</span>
             )}
             <span className="font-mono text-[11px] tabular-nums text-[var(--color-engrave-faint)]">
               {card.text ? `${card.text.length} ch` : "no text"}
@@ -161,13 +161,14 @@ function CopyKey({ text, label, onCopy }: { text: string; label: string; onCopy:
       onClick={() => { onCopy(text); setDone(true); }}
       aria-label={`Copy the ${label} message`}
       title="Copy"
-      className={`border border-transparent p-1.5 transition-[color,background-color,transform] active:translate-y-px ${
+      className={`vx-legend flex items-center gap-1.5 border px-2.5 py-1.5 text-[10px] transition-[color,background-color,border-color,transform] active:translate-y-px ${
         done
-          ? "text-[var(--color-lamp-team)]"
-          : "text-[var(--color-engrave-faint)] hover:border-[var(--color-bevel)] hover:bg-[var(--color-panel-raised)] hover:text-[var(--color-engrave)]"
+          ? "border-[var(--color-lamp-team)] text-[var(--color-lamp-team)]"
+          : "border-[var(--color-bevel)] bg-[var(--color-panel-raised)] text-[var(--color-engrave-dim)] hover:border-[var(--color-bevel-lit)] hover:text-[var(--color-engrave)]"
       }`}
     >
       {done ? <Check className="size-3.5" aria-hidden /> : <Copy className="size-3.5" aria-hidden />}
+      {done ? "Copied" : "Copy"}
     </button>
   );
 }
@@ -175,7 +176,7 @@ function CopyKey({ text, label, onCopy }: { text: string; label: string; onCopy:
 export function ChannelSkeleton({ label, channel, tint }: { label: string; channel: number; tint: Tint | string }) {
   return (
     <article
-      className="vx-panel grid grid-cols-[auto_1fr] items-start gap-x-4 px-4 py-4 sm:grid-cols-[7.5rem_1fr] sm:gap-x-6 sm:px-6"
+      className="grid grid-cols-[auto_1fr] items-start gap-x-4 px-4 py-5 sm:grid-cols-[7.5rem_1fr] sm:gap-x-6 sm:px-6"
       aria-hidden
     >
       <div className="flex items-center gap-2.5 pt-0.5 sm:flex-col sm:items-start sm:gap-1.5">

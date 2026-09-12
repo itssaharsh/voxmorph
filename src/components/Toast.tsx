@@ -21,9 +21,9 @@ export function Toast({ toast, onDone }: { toast: ToastState; onDone: () => void
       {toast && (
         <div
           key={toast.id}
-          className="vx-panel animate-lamp flex items-center gap-2 px-3.5 py-2 font-mono text-[12px] shadow-lg"
+          className="vx-panel animate-lamp flex items-center gap-2 px-3.5 py-2 text-[13px] shadow-lg"
           style={{
-            color: toast.kind === "ok" ? "var(--color-lamp-team)" : "var(--color-live)",
+            color: toast.kind === "ok" ? "var(--color-lamp-team)" : "var(--color-live-text)",
           }}
         >
           {toast.kind === "ok" ? (

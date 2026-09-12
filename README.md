@@ -107,7 +107,11 @@ pointed at `http://192.168.x.x:3000` will fail.
   is live API output.
 - **Saved:** the example shown on first load is a real captured `/api/morph`
   response ([`src/state/demoSeed.ts`](src/state/demoSeed.ts)), labelled as such in
-  the UI. `/?fresh=1` skips it.
+  the UI. `/?fresh=1` skips it. Its audio is a public-domain speech clip with one
+  phrase spliced to repeat, so the page opens on a real self-correction: the API
+  transcribed the false start verbatim as "And so my- and so my fellow Americans"
+  and its own cleanup removed it. The transcript, the cleanup and all six rewrites
+  are genuine API output; only the input audio was edited.
 - **Not simulated anywhere:** there are no canned rewrites, no fake latency, and no
   invented metrics.
 
