@@ -8,7 +8,7 @@ There is no other model anywhere in the stack.
 
 > Built for AssemblyAI Voice Hackathon Week, September 2026.
 
-**Live demo:** _(add your Vercel URL)_ · **Video:** _(add your link)_
+**Live demo:** <https://voxmorph-7ju87p1oj-lack-toes.vercel.app> · **Video:** _(add your link)_
 
 ---
 
