@@ -22,6 +22,11 @@ type Props = {
  * description is shown as the channel's own label so what produced a card is
  * always visible. See buildCustomInstruction and docs/SECURITY-NOTES.md.
  */
+const TONES = [
+  "my landlord", "a five-year-old", "furious but professional",
+  "my investors", "a group chat", "deadpan and very short",
+];
+
 export function CustomChannel({ ready, busy, onDictate, onSubmit }: Props) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
@@ -48,17 +53,22 @@ export function CustomChannel({ ready, busy, onDictate, onSubmit }: Props) {
     }
   };
 
-  if (!ready) return null;
-
   if (!open) {
     return (
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex w-full items-center gap-2.5 px-5 py-5 text-left text-[15px] text-[var(--color-ink-muted)] transition-colors hover:bg-[var(--color-sunk)] sm:px-7"
+        className="group flex w-full items-center gap-3 px-5 py-6 text-left transition-colors hover:bg-white/[0.05] sm:px-8"
       >
-        <Plus className="size-4 text-[var(--color-ink-faint)]" aria-hidden />
-        Write it for someone else
+        <span className="grid size-7 place-items-center rounded-full border border-[var(--color-edge-lit)] text-[var(--color-ember)] transition-transform group-hover:rotate-90">
+          <Plus className="size-4" aria-hidden />
+        </span>
+        <span>
+          <span className="block text-[16px] text-[var(--color-text)]">Write it for someone else</span>
+          <span className="block text-[13px] text-[var(--color-text-faint)]">
+            Any reader, any tone. Same recording.
+          </span>
+        </span>
       </button>
     );
   }
@@ -70,11 +80,11 @@ export function CustomChannel({ ready, busy, onDictate, onSubmit }: Props) {
           <Dot tint="custom" />
           <span className="font-mono text-[12px] tabular-nums text-[var(--color-ch-custom)]">07</span>
         </span>
-        <h3 className="legend text-[11px] text-[var(--color-ink-muted)]">Write it for</h3>
+        <h3 className="legend text-[11px] text-[var(--color-text-dim)]">Write it for</h3>
       </header>
 
       <div>
-        <div className="flex items-center gap-2 rounded-[var(--radius)] border border-[var(--color-hairline-strong)] bg-[var(--color-surface)] px-3 py-2 focus-within:border-[var(--color-accent)]">
+        <div className="flex items-center gap-2 rounded-xl border border-[var(--color-edge-lit)] bg-black/30 px-3 py-2.5 transition-colors focus-within:border-[var(--color-ember)]">
           <input
             ref={input}
             value={value}
@@ -86,7 +96,7 @@ export function CustomChannel({ ready, busy, onDictate, onSubmit }: Props) {
             placeholder={listening ? "Listening…" : "my landlord, a five-year-old, my accountant…"}
             aria-label="Describe who this message is for"
             maxLength={MAX_CUSTOM_AUDIENCE_CHARS}
-            className="min-w-0 flex-1 bg-transparent text-[16px] text-[var(--color-ink)] outline-none placeholder:text-[var(--color-ink-faint)]"
+            className="min-w-0 flex-1 bg-transparent text-[16px] text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-faint)]"
           />
           <button
             type="button"
@@ -94,7 +104,7 @@ export function CustomChannel({ ready, busy, onDictate, onSubmit }: Props) {
             disabled={listening || busy}
             aria-label="Dictate who this is for"
             title="Say it instead"
-            className="rounded-[var(--radius)] p-1.5 text-[var(--color-ink-faint)] transition-colors hover:bg-[var(--color-sunk)] hover:text-[var(--color-accent-text)] disabled:opacity-50"
+            className="rounded-[var(--radius)] p-1.5 text-[var(--color-text-faint)] transition-colors hover:bg-[rgba(255,255,255,0.08)] hover:text-[var(--color-ember)] disabled:opacity-50"
           >
             {listening
               ? <Loader2 className="size-4 animate-spin" aria-hidden />
@@ -105,16 +115,22 @@ export function CustomChannel({ ready, busy, onDictate, onSubmit }: Props) {
             onClick={submit}
             disabled={!value.trim() || busy}
             aria-label="Write this channel"
-            className="flex items-center gap-1.5 rounded-[var(--radius)] bg-[var(--color-ink)] px-2.5 py-1.5 text-[12px] text-[var(--color-surface)] transition-opacity hover:opacity-90 disabled:opacity-30"
+            className="flex items-center gap-1.5 rounded-lg bg-[var(--color-ember)] px-3 py-1.5 text-[12px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-30"
           >
             <CornerDownLeft className="size-3.5" aria-hidden />
             Write
           </button>
         </div>
-        <p className="mt-2 text-[13px] text-[var(--color-ink-faint)]">
-          {listening
-            ? "Hold on, transcribing what you said."
-            : "Type it or press the mic. Same recording, one more instruction."}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {TONES.map((t) => (
+            <button key={t} type="button" onClick={() => { setValue(t); }}
+              className="rounded-full border border-[var(--color-edge)] bg-white/5 px-3 py-1 text-[12px] text-[var(--color-text-dim)] transition-colors hover:border-[var(--color-edge-lit)] hover:text-white">
+              {t}
+            </button>
+          ))}
+        </div>
+        <p className="mt-2.5 text-[13px] text-[var(--color-text-faint)]">
+          {listening ? "Listening, then transcribing…" : "Type it, press a chip, or use the mic."}
         </p>
       </div>
     </div>

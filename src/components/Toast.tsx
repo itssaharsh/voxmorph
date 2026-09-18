@@ -21,7 +21,7 @@ export function Toast({ toast, onDone }: { toast: ToastState; onDone: () => void
       {toast && (
         <div
           key={toast.id}
-          className="flex items-center gap-2 rounded-full bg-[var(--color-ink)] px-4 py-2 text-[14px] text-[var(--color-surface)] shadow-[0_6px_20px_rgba(22,23,26,0.18)]"
+          className="glass flex items-center gap-2 rounded-full px-4 py-2 text-[14px] text-[var(--color-text)]"
         >
           {toast.kind === "ok"
             ? <Check className="size-4 shrink-0" aria-hidden />

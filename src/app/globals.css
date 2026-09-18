@@ -1,18 +1,5 @@
 @import "tailwindcss";
 
-/* ─────────────────────────────────────────────────────────────
-   Voxmorph — light editorial.
-
-   The product's content is prose, and prose is read, not monitored.
-   So the surface is paper rather than a console: a cool near-white
-   ground, black ink, hairline structure, and exactly one accent that
-   means "voice, live, or removed". Channel identity is a numbered dot,
-   never a filled field.
-
-   Every colour below carries its measured contrast against the ground
-   it is used on. Nothing sits under 4.5:1 at body size.
-   ───────────────────────────────────────────────────────────── */
-
 @theme inline {
   --font-sans: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
   --font-legend: var(--font-barlow-condensed), var(--font-barlow), ui-sans-serif, sans-serif;
@@ -20,105 +7,76 @@
 }
 
 @theme {
-  /* Grounds */
-  --color-paper: #F4F5F6;          /* the page */
-  --color-surface: #FFFFFF;        /* anything raised off it */
-  --color-sunk: #EDEFF1;           /* wells, inactive toggles */
+  --color-void: #06060B;
+  --color-glass: rgba(255, 255, 255, 0.055);
+  --color-glass-strong: rgba(255, 255, 255, 0.10);
+  --color-edge: rgba(255, 255, 255, 0.13);
+  --color-edge-lit: rgba(255, 255, 255, 0.28);
 
-  /* Ink */
-  --color-ink: #16171A;            /* 16.42:1 on paper */
-  --color-ink-muted: #5C6169;      /*  5.71:1 on paper */
-  --color-ink-faint: #6B7078;      /*  4.57:1 on paper — still a body-legal value */
-  --color-hairline: #E2E4E7;
-  --color-hairline-strong: #CFD3D8;
+  --color-text: #F3F1FA;
+  --color-text-dim: #B4B0C8;
+  --color-text-faint: #8A86A3;
 
-  /* The one accent. It means voice, live, or removed — nothing else. */
-  --color-accent: #D93A1E;         /* fills: white on it is 4.59:1 */
-  --color-accent-text: #C02E10;    /*  5.29:1 on paper, for accent-coloured text */
-  --color-accent-wash: #FDF0EC;
+  --color-ember: #FF6A3D;
+  --color-violet: #A78BFA;
+  --color-cyan: #4DD8F0;
+  --color-mint: #5BE5B0;
+  --color-rose: #FF7EB6;
+  --color-gold: #FFC861;
 
-  /* Channel identity. Used as a dot and a number, never as a filled field.
-     All ≥ 4.9:1 on paper, so any of them is legal as small text. */
-  --color-ch-floor: #16171A;
-  --color-ch-cleaned: #8A6300;
-  --color-ch-boss: #1B4FA8;
-  --color-ch-team: #0E6A6A;
-  --color-ch-public: #8A2F7B;
-  --color-ch-tech: #3A4899;
-  --color-ch-family: #A8305A;
-  --color-ch-custom: #6B4BA8;
-
-  /* One radius rule: 6px on every surface. The mic is the sole circle,
-     because it is the only thing you physically press. */
-  --radius: 6px;
+  --radius: 16px;
 }
 
-html { color-scheme: light; background: var(--color-paper); }
-body { color: var(--color-ink); }
+html { color-scheme: dark; background: var(--color-void); }
+body { color: var(--color-text); overflow-x: hidden; }
 
-/* Browser surfaces carry the design too. */
-::selection { background: #FBD9D1; color: var(--color-ink); }
-textarea, input { caret-color: var(--color-accent); }
-* { scrollbar-width: thin; scrollbar-color: var(--color-hairline-strong) transparent; }
-*::-webkit-scrollbar { width: 10px; height: 10px; }
-*::-webkit-scrollbar-thumb { background: var(--color-hairline-strong); border-radius: 999px; border: 3px solid var(--color-paper); }
-*::-webkit-scrollbar-track { background: transparent; }
-:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 2px; }
+::selection { background: rgba(167, 139, 250, 0.35); color: #fff; }
+textarea, input { caret-color: var(--color-ember); }
+* { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.18) transparent; }
+*::-webkit-scrollbar { width: 10px; }
+*::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
+:focus-visible { outline: 2px solid var(--color-violet); outline-offset: 3px; border-radius: 6px; }
 
-/* A raised sheet. Structure comes from a hairline and a whisper of lift,
-   never from a heavy shadow. */
-.sheet {
-  background: var(--color-surface);
-  border: 1px solid var(--color-hairline);
+/* Frosted panel. The blur is doing real work here: the aurora moves behind it. */
+.glass {
+  background: linear-gradient(180deg, rgba(255,255,255,0.075), rgba(255,255,255,0.03));
+  border: 1px solid var(--color-edge);
   border-radius: var(--radius);
-  box-shadow: 0 1px 2px rgba(22, 23, 26, 0.04);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 24px 60px rgba(0,0,0,0.45);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass { background: rgba(14,14,22,0.94); backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
 
-/* Small caps label, for control legends only. */
 .legend {
   font-family: var(--font-legend);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--color-ink-faint);
+  letter-spacing: 0.16em;
+  color: var(--color-text-faint);
 }
 
-/* A word the API's own cleanup removed. anime.js drives --draw from 0 to 1 so the
-   rule is struck through rather than simply present. Default 1, so the resting
-   state and the reduced-motion state are both correct with no JS. */
-@property --draw {
-  syntax: "<number>";
-  inherits: false;
-  initial-value: 1;
-}
-.struck {
-  position: relative;
-  color: var(--color-ink-faint);
-  white-space: nowrap;
-}
+/* A word the API's own cleanup removed. anime.js drives --draw 0 -> 1. */
+@property --draw { syntax: "<number>"; inherits: false; initial-value: 1; }
+.struck { position: relative; color: var(--color-text-faint); white-space: nowrap; }
 .struck::after {
-  content: "";
-  position: absolute;
-  left: 0; right: 0;
-  top: 56%;
-  height: 2px;
-  background: var(--color-accent);
-  transform: scaleX(var(--draw, 1));
-  transform-origin: left center;
-  border-radius: 1px;
+  content: ""; position: absolute; left: 0; right: 0; top: 55%; height: 2px;
+  background: var(--color-ember);
+  box-shadow: 0 0 12px rgba(255,106,61,0.85);
+  transform: scaleX(var(--draw, 1)); transform-origin: left center; border-radius: 2px;
 }
 
-/* Low confidence on the floor feed. */
 .uncertain {
-  text-decoration: underline dotted;
-  text-decoration-color: var(--color-ch-cleaned);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 5px;
+  text-decoration: underline dotted; text-decoration-color: var(--color-gold);
+  text-decoration-thickness: 2px; text-underline-offset: 6px;
 }
+
+/* Word-by-word reveal of the transcript. */
+@keyframes wordIn { from { opacity: 0; filter: blur(6px); transform: translateY(6px); } to { opacity: 1; filter: none; transform: none; } }
+.word { display: inline-block; animation: wordIn 520ms cubic-bezier(0.16,1,0.3,1) both; }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .word { animation: none; opacity: 1; filter: none; transform: none; }
 }

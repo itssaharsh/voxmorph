@@ -32,10 +32,10 @@ export function FloorFeed({ transcript, loading }: { transcript: Transcript | nu
 
   if (loading && !transcript) {
     return (
-      <section className="sheet p-6 sm:p-8">
+      <section className="glass p-6 sm:p-10">
         <div className="space-y-3" aria-hidden>
-          <div className="h-5 w-11/12 animate-pulse rounded bg-[var(--color-sunk)]" />
-          <div className="h-5 w-7/12 animate-pulse rounded bg-[var(--color-sunk)]" />
+          <div className="h-6 w-11/12 animate-pulse rounded bg-white/10" />
+          <div className="h-6 w-7/12 animate-pulse rounded bg-white/10" />
         </div>
       </section>
     );
@@ -43,9 +43,9 @@ export function FloorFeed({ transcript, loading }: { transcript: Transcript | nu
 
   if (!transcript) {
     return (
-      <section className="sheet px-6 py-14 text-center sm:px-8">
-        <p className="text-[19px] text-[var(--color-ink-muted)]">Hold the button. Say anything.</p>
-        <p className="mx-auto mt-2 max-w-sm text-[14px] text-[var(--color-ink-faint)]">
+      <section className="glass px-6 py-20 text-center sm:px-8">
+        <p className="bg-gradient-to-br from-white via-[#D8CCFF] to-[#8AD8F0] bg-clip-text text-[30px] font-semibold tracking-tight text-transparent sm:text-[38px]">Hold the button. Say anything.</p>
+        <p className="mx-auto mt-3 max-w-md text-[16px] text-[var(--color-text-dim)]">
           One sentence becomes six, each written for someone different.
         </p>
       </section>
@@ -53,7 +53,7 @@ export function FloorFeed({ transcript, loading }: { transcript: Transcript | nu
   }
 
   return (
-    <section className="sheet p-5 sm:p-8">
+    <section className="glass p-6 sm:p-10">
       <div className="mb-4 flex sm:mb-5 flex-wrap items-center justify-between gap-x-5 gap-y-2">
         <span className="flex items-center gap-2.5">
           <Dot tint="floor" />
@@ -63,11 +63,11 @@ export function FloorFeed({ transcript, loading }: { transcript: Transcript | nu
         {transcript.clean && (
           <div className="flex items-center gap-4">
             {removed > 0 && (
-              <span className="text-[13px] text-[var(--color-accent-text)]">
+              <span className="text-[13px] text-[var(--color-ember)]">
                 {removed} removed by the API
               </span>
             )}
-            <div className="flex rounded-[var(--radius)] bg-[var(--color-sunk)] p-0.5" role="group" aria-label="Transcript view">
+            <div className="flex rounded-full border border-[var(--color-edge)] bg-white/5 p-0.5" role="group" aria-label="Transcript view">
               <Toggle active={!cleaned} onClick={() => setCleaned(false)}>Verbatim</Toggle>
               <Toggle active={cleaned} onClick={() => setCleaned(true)}>Cleaned</Toggle>
             </div>
@@ -77,7 +77,7 @@ export function FloorFeed({ transcript, loading }: { transcript: Transcript | nu
 
       <p
         ref={bodyRef}
-        className="max-w-[52ch] font-mono text-[17px] leading-[1.55] tracking-[-0.01em] text-[var(--color-ink)] sm:text-[26px] sm:leading-[1.5]"
+        className="max-w-[24ch] text-[26px] leading-[1.25] font-semibold tracking-[-0.03em] text-[var(--color-text)] sm:max-w-[20ch] sm:text-[46px] sm:leading-[1.15]"
         aria-live="polite"
       >
         {cleaned
@@ -85,15 +85,16 @@ export function FloorFeed({ transcript, loading }: { transcript: Transcript | nu
           : tokens.map((t, i) => (
               <span
                 key={i}
-                className={t.removed ? "struck" : uncertain.has(i) ? "uncertain" : undefined}
+                className={`word ${t.removed ? "struck" : uncertain.has(i) ? "uncertain" : ""}`}
+                style={{ animationDelay: `${Math.min(i, 40) * 34}ms` }}
                 title={t.removed ? "Removed by the Dictation API's own cleanup" : undefined}
               >
-                {t.text}{i < tokens.length - 1 ? " " : ""}
+                {t.text}
               </span>
-            ))}
+            )).flatMap((el, i) => (i === 0 ? [el] : [" ", el]))}
       </p>
 
-      <p className="mt-5 border-t border-[var(--color-hairline)] pt-3.5 text-[13px] text-[var(--color-ink-faint)] sm:mt-6 sm:pt-4">
+      <p className="mt-7 border-t border-[var(--color-edge)] pt-4 font-mono text-[12px] text-[var(--color-text-faint)]">
         {(transcript.audioDurationMs / 1000).toFixed(1)}s of audio
         {" · "}{transcript.words.length} words
         {" · "}{(transcript.confidence * 100).toFixed(0)}% confidence
@@ -109,10 +110,10 @@ function Toggle({ active, onClick, children }: { active: boolean; onClick: () =>
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`rounded-[4px] px-2.5 py-1 text-[12px] transition-colors ${
+      className={`rounded-full px-3 py-1 text-[12px] transition-colors ${
         active
-          ? "bg-[var(--color-surface)] text-[var(--color-ink)] shadow-[0_1px_2px_rgba(22,23,26,0.08)]"
-          : "text-[var(--color-ink-faint)] hover:text-[var(--color-ink-muted)]"
+          ? "bg-white/90 text-[#0B0B12]"
+          : "text-[var(--color-text-faint)] hover:text-[var(--color-text-dim)]"
       }`}
     >
       {children}

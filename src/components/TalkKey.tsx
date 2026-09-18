@@ -12,7 +12,7 @@ type Props = {
   onStop: () => void;
 };
 
-const R = 33;
+const R = 38;
 const CIRC = 2 * Math.PI * R;
 
 /** Hold to talk. The ring is a level arc driven by real microphone RMS, so the
@@ -57,17 +57,17 @@ export function TalkKey({ status, level, busy, recordingMs, onStart, onStop }: P
   }, [onStart, onStop]);
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex flex-col items-center gap-3 pt-28 pb-8
-                    [background:linear-gradient(180deg,transparent_0%,color-mix(in_srgb,var(--color-paper)_80%,transparent)_18%,var(--color-paper)_34%,var(--color-paper)_100%)]">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex flex-col items-center gap-3 pt-36 pb-9
+                    [background:linear-gradient(180deg,transparent_0%,rgba(6,6,11,0.55)_12%,rgba(6,6,11,0.92)_30%,var(--color-void)_46%,var(--color-void)_100%)]">
       <p className="h-5 text-[14px]">
         {recording ? (
-          <span className="text-[var(--color-accent-text)]">
+          <span className="text-[var(--color-ember)]">
             Listening · <span className="font-mono tabular-nums">{(recordingMs / 1000).toFixed(1)}s</span>
           </span>
         ) : working ? (
-          <span className="text-[var(--color-ink-muted)]">Writing the channels…</span>
+          <span className="text-[var(--color-text-dim)]">Writing the channels…</span>
         ) : (
-          <span className="text-[var(--color-ink-faint)]">Hold to talk, or hold Space</span>
+          <span className="text-[var(--color-text-faint)]">Hold to talk, or hold Space</span>
         )}
       </p>
 
@@ -82,23 +82,23 @@ export function TalkKey({ status, level, busy, recordingMs, onStart, onStop }: P
         onLostPointerCapture={up}
         onContextMenu={(e) => e.preventDefault()}
         onDragStart={(e) => e.preventDefault()}
-        className="pointer-events-auto relative grid size-[76px] place-items-center rounded-full transition-transform duration-100 active:translate-y-[2px] disabled:cursor-wait"
+        className="pointer-events-auto relative grid size-[86px] place-items-center rounded-full transition-transform duration-150 hover:scale-[1.04] active:scale-[0.97] disabled:cursor-wait"
         style={{
           touchAction: "none", userSelect: "none", WebkitUserSelect: "none",
           WebkitTouchCallout: "none", WebkitTapHighlightColor: "transparent",
-          background: working ? "var(--color-sunk)" : "var(--color-accent)",
-          color: working ? "var(--color-ink-faint)" : "#FFFFFF",
+          background: working ? "rgba(255,255,255,0.10)" : "linear-gradient(160deg,#FF8A5B 0%,#FF6A3D 45%,#E0431C 100%)",
+          color: working ? "var(--color-text-faint)" : "#FFFFFF",
           boxShadow: working
             ? "none"
             : recording
-              ? "0 0 0 6px var(--color-accent-wash), 0 8px 22px rgba(217,58,30,0.32)"
-              : "0 2px 10px rgba(217,58,30,0.28)",
+              ? "0 0 0 10px rgba(255,106,61,0.14), 0 0 60px rgba(255,106,61,0.55), inset 0 1px 0 rgba(255,255,255,0.4)"
+              : "0 0 36px rgba(255,106,61,0.40), inset 0 1px 0 rgba(255,255,255,0.35)",
         }}
       >
-        <svg aria-hidden viewBox="0 0 76 76" className="absolute inset-0 size-full -rotate-90">
+        <svg aria-hidden viewBox="0 0 86 86" className="absolute inset-0 size-full -rotate-90">
           {recording && (
             <circle
-              cx="38" cy="38" r={R} fill="none"
+              cx="43" cy="43" r={R} fill="none"
               stroke="rgba(255,255,255,0.9)" strokeWidth="2.5" strokeLinecap="round"
               strokeDasharray={CIRC}
               strokeDashoffset={CIRC * (1 - Math.min(1, level))}

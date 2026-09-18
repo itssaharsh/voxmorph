@@ -39,19 +39,19 @@ export function ChannelStrip({ card, channel, tint, index, onCopy, onRetry, onEd
   return (
     <article
       ref={ref as React.RefObject<HTMLElement>}
-      className="grid grid-cols-1 gap-x-8 gap-y-3 px-5 py-6 sm:grid-cols-[9rem_1fr] sm:px-7"
+      className="group grid grid-cols-1 gap-x-8 gap-y-3 px-5 py-6 transition-colors hover:bg-white/[0.035] sm:grid-cols-[9rem_1fr] sm:px-8"
     >
       <header className="flex items-center gap-2.5 sm:flex-col sm:items-start sm:gap-2">
         <span className="flex items-center gap-2">
           <Dot tint={tint} muted={dead} />
           <span
             className="font-mono text-[12px] tabular-nums"
-            style={{ color: dead ? "var(--color-ink-faint)" : hueOf(tint) }}
+            style={{ color: dead ? "var(--color-text-faint)" : hueOf(tint), textShadow: dead ? "none" : `0 0 18px ${hueOf(tint)}55` }}
           >
             {String(channel).padStart(2, "0")}
           </span>
         </span>
-        <h3 className="legend text-[11px] leading-snug text-[var(--color-ink-muted)]">{card.label}</h3>
+        <h3 className="legend text-[11px] leading-snug">{card.label}</h3>
       </header>
 
       <div className="min-w-0">
@@ -67,12 +67,12 @@ export function ChannelStrip({ card, channel, tint, index, onCopy, onRetry, onEd
             }}
             rows={4}
             aria-label={`Edit the ${card.label} message`}
-            className="w-full resize-y rounded-[var(--radius)] border border-[var(--color-hairline-strong)] bg-[var(--color-surface)] p-3 text-[16px] leading-[1.6] text-[var(--color-ink)] outline-none focus-visible:border-[var(--color-accent)]"
+            className="w-full resize-y rounded-xl border border-[var(--color-edge-lit)] bg-black/40 p-3 text-[16px] leading-[1.6] text-[var(--color-text)] outline-none"
           />
         ) : (
-          <p className="max-w-[62ch] text-[16px] leading-[1.6] whitespace-pre-wrap text-[var(--color-ink)]">
+          <p className="max-w-[58ch] text-[16.5px] leading-[1.65] whitespace-pre-wrap text-[var(--color-text)]">
             {card.text ?? (
-              <span className="text-[var(--color-ink-faint)]">
+              <span className="text-[var(--color-text-faint)]">
                 {card.error?.message ?? "No response on this channel."}
               </span>
             )}
@@ -84,20 +84,20 @@ export function ChannelStrip({ card, channel, tint, index, onCopy, onRetry, onEd
               when no direct channel exists, which is what a failed rewrite does. */}
           {relayed && (
             <span
-              className="text-[13px] text-[var(--color-accent-text)]"
+              className="text-[13px] text-[var(--color-ember)]"
               title={`The rewrite did not complete (llm_error: ${card.llmError}). Showing the API's cleaned transcript.`}
             >
               {card.retrying ? "relaying, retrying" : <>relayed from floor · <span className="font-mono">{card.llmError}</span></>}
             </span>
           )}
           {dead && (
-            <span className="text-[13px] text-[var(--color-accent-text)]">
+            <span className="text-[13px] text-[var(--color-ember)]">
               channel down · <span className="font-mono">{card.error?.code}</span>
             </span>
           )}
-          {card.edited && <span className="text-[13px] text-[var(--color-ink-faint)]">edited</span>}
+          {card.edited && <span className="text-[13px] text-[var(--color-text-faint)]">edited</span>}
 
-          <span className="font-mono text-[12px] tabular-nums text-[var(--color-ink-faint)]">
+          <span className="font-mono text-[12px] tabular-nums text-[var(--color-text-faint)]">
             {card.text ? `${card.text.length}` : "—"}
           </span>
 
@@ -126,7 +126,7 @@ function Ghost({ label, onClick, children }: { label: string; onClick: () => voi
   return (
     <button
       type="button" onClick={onClick} aria-label={label} title={label}
-      className="rounded-[var(--radius)] p-2 text-[var(--color-ink-faint)] transition-colors hover:bg-[var(--color-sunk)] hover:text-[var(--color-ink)] active:translate-y-px"
+      className="rounded-lg p-2 text-[var(--color-text-faint)] transition-colors hover:bg-white/10 hover:text-white active:translate-y-px"
     >
       {children}
     </button>
@@ -145,10 +145,10 @@ function CopyButton({ text, label, onCopy }: { text: string; label: string; onCo
       type="button"
       onClick={() => { onCopy(text); setDone(true); }}
       aria-label={`Copy the ${label} message`}
-      className={`flex items-center gap-1.5 rounded-[var(--radius)] border px-2.5 py-1.5 text-[12px] transition-colors active:translate-y-px ${
+      className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] transition-colors active:translate-y-px ${
         done
-          ? "border-[var(--color-accent)] text-[var(--color-accent-text)]"
-          : "border-[var(--color-hairline-strong)] text-[var(--color-ink-muted)] hover:border-[var(--color-ink-faint)] hover:text-[var(--color-ink)]"
+          ? "border-[var(--color-mint)] text-[var(--color-mint)]"
+          : "border-[var(--color-edge)] text-[var(--color-text-dim)] hover:border-[var(--color-edge-lit)] hover:text-white"
       }`}
     >
       {done ? <Check className="size-3.5" aria-hidden /> : <Copy className="size-3.5" aria-hidden />}
@@ -159,19 +159,19 @@ function CopyButton({ text, label, onCopy }: { text: string; label: string; onCo
 
 export function ChannelSkeleton({ label, channel, tint }: { label: string; channel: number; tint: Tint | string }) {
   return (
-    <article className="grid grid-cols-1 gap-x-8 gap-y-3 px-5 py-6 sm:grid-cols-[9rem_1fr] sm:px-7" aria-hidden>
+    <article className="group grid grid-cols-1 gap-x-8 gap-y-3 px-5 py-6 transition-colors hover:bg-white/[0.035] sm:grid-cols-[9rem_1fr] sm:px-8" aria-hidden>
       <header className="flex items-center gap-2.5 sm:flex-col sm:items-start sm:gap-2">
         <span className="flex items-center gap-2">
           <Dot tint={tint} muted />
-          <span className="font-mono text-[12px] tabular-nums text-[var(--color-ink-faint)]">
+          <span className="font-mono text-[12px] tabular-nums text-[var(--color-text-faint)]">
             {String(channel).padStart(2, "0")}
           </span>
         </span>
-        <span className="legend text-[11px] text-[var(--color-ink-faint)]">{label}</span>
+        <span className="legend text-[11px]">{label}</span>
       </header>
       <div className="space-y-2.5 py-1">
-        <div className="h-3.5 w-full animate-pulse rounded bg-[var(--color-sunk)]" />
-        <div className="h-3.5 w-8/12 animate-pulse rounded bg-[var(--color-sunk)]" />
+        <div className="h-3.5 w-full animate-pulse rounded bg-white/10" />
+        <div className="h-3.5 w-8/12 animate-pulse rounded bg-white/10" />
       </div>
     </article>
   );

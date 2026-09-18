@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useReducer, useRef, useState } from "react";
+import { Aurora } from "./Aurora";
 import { ChannelSkeleton, ChannelStrip } from "./ChannelStrip";
 import { CustomChannel } from "./CustomChannel";
 import { FloorFeed } from "./FloorFeed";
@@ -73,7 +74,7 @@ export function CommandCenter({ seed, forceJson, demoFail }: {
   }, [say]);
 
   const runChannel = useCallback((id: string, custom?: string) => {
-    if (!lastWav.current) { say("Say something first.", "warn"); return; }
+    if (!lastWav.current) { say("Hold the mic and say something first.", "warn"); return; }
     void morph(lastWav.current, { lang: state.language, audiences: [id], forceJson, demoFail, custom });
   }, [morph, state.language, forceJson, demoFail, say]);
 
@@ -91,13 +92,15 @@ export function CommandCenter({ seed, forceJson, demoFail }: {
   const cards = state.order.map((id) => state.cards[id]).filter(Boolean);
 
   return (
+    <>
+    <Aurora level={recorder.level} active={recorder.status === "recording" || busy} />
     <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col px-4 pb-44 sm:px-6">
       <header className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 py-7">
-        <h1 className="text-[20px] font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
+        <h1 className="bg-gradient-to-r from-white via-[#D9CCFF] to-[#7FE3F5] bg-clip-text text-[22px] font-semibold tracking-[-0.03em] text-transparent">
           Voxmorph
         </h1>
         <div className="flex items-baseline gap-5">
-          <p className="hidden text-[14px] text-[var(--color-ink-faint)] sm:block">
+          <p className="hidden text-[14px] text-[var(--color-text-faint)] sm:block">
             Say it once. Send it six ways.
           </p>
           <label className="sr-only" htmlFor="lang">Language</label>
@@ -105,7 +108,7 @@ export function CommandCenter({ seed, forceJson, demoFail }: {
             id="lang"
             value={state.language}
             onChange={(e) => dispatch({ type: "language", code: e.target.value })}
-            className="rounded-[var(--radius)] border border-[var(--color-hairline)] bg-[var(--color-surface)] px-2 py-1 text-[13px] text-[var(--color-ink-muted)] outline-none"
+            className="rounded-full border border-[var(--color-edge)] bg-white/5 px-3 py-1 text-[13px] text-[var(--color-text-dim)] outline-none [&>option]:bg-[#12121A]"
           >
             {SUPPORTED_LANGUAGES.map((l) => (
               <option key={l.code} value={l.code}>{l.label}</option>
@@ -115,12 +118,12 @@ export function CommandCenter({ seed, forceJson, demoFail }: {
       </header>
 
       {state.error && (
-        <div role="alert" className="sheet mb-5 flex items-start gap-3 p-4 text-[15px]"
-             style={{ borderColor: "var(--color-accent)", background: "var(--color-accent-wash)" }}>
-          <TriangleAlert className="mt-0.5 size-4 shrink-0 text-[var(--color-accent-text)]" aria-hidden />
+        <div role="alert" className="glass mb-5 flex items-start gap-3 p-4 text-[15px]"
+             style={{ borderColor: "var(--color-ember)", background: "rgba(255,106,61,0.12)" }}>
+          <TriangleAlert className="mt-0.5 size-4 shrink-0 text-[var(--color-ember)]" aria-hidden />
           <div>
-            <p className="text-[var(--color-ink)]">{state.error.message}</p>
-            <p className="mt-0.5 font-mono text-[12px] text-[var(--color-ink-faint)]">{state.error.code}</p>
+            <p className="text-[var(--color-text)]">{state.error.message}</p>
+            <p className="mt-0.5 font-mono text-[12px] text-[var(--color-text-faint)]">{state.error.code}</p>
           </div>
         </div>
       )}
@@ -128,13 +131,13 @@ export function CommandCenter({ seed, forceJson, demoFail }: {
       <FloorFeed transcript={state.transcript} loading={busy} />
 
       {state.isExample && (
-        <p className="mt-2.5 text-[13px] text-[var(--color-ink-faint)]">
+        <p className="mt-2.5 text-[13px] text-[var(--color-text-faint)]">
           A saved example from a real API response. Hold the button to run your own.
         </p>
       )}
 
       {(cards.length > 0 || state.pending.length > 0) && (
-        <div className="sheet mt-7 divide-y divide-[var(--color-hairline)] overflow-hidden">
+        <div className="glass mt-8 divide-y divide-[var(--color-edge)] overflow-hidden">
           {cards.map((card, i) => (
             <ChannelStrip
               key={card.id}
@@ -151,7 +154,7 @@ export function CommandCenter({ seed, forceJson, demoFail }: {
             <ChannelSkeleton key={id} label={labelOf(id)} channel={channelOf(id)} tint={tintOf(id)} />
           ))}
           <CustomChannel
-            ready={!!lastWav.current && !state.isExample}
+            ready
             busy={busy}
             onDictate={dictateAudience}
             onSubmit={(audience) => runChannel(CUSTOM_ID, audience)}
@@ -161,13 +164,13 @@ export function CommandCenter({ seed, forceJson, demoFail }: {
 
       {lastWav.current && !busy && (
         <div className="mt-5 flex flex-wrap items-center gap-2">
-          <span className="text-[13px] text-[var(--color-ink-faint)]">Or try:</span>
+          <span className="text-[13px] text-[var(--color-text-faint)]">Or try:</span>
           {WILDCARDS.map((w) => (
             <button
               key={w.id}
               type="button"
               onClick={() => runChannel(w.id)}
-              className="rounded-full border border-[var(--color-hairline-strong)] px-3 py-1 text-[13px] text-[var(--color-ink-muted)] transition-colors hover:border-[var(--color-ink-faint)] hover:text-[var(--color-ink)] active:translate-y-px"
+              className="rounded-full border border-[var(--color-edge)] bg-white/5 px-3.5 py-1.5 text-[13px] text-[var(--color-text-dim)] transition-all hover:border-[var(--color-edge-lit)] hover:bg-white/10 hover:text-white active:translate-y-px"
             >
               {w.label}
             </button>
@@ -175,12 +178,12 @@ export function CommandCenter({ seed, forceJson, demoFail }: {
         </div>
       )}
 
-      <footer className="mt-auto pt-12 pb-2 text-[13px] leading-relaxed text-[var(--color-ink-faint)]">
+      <footer className="mt-auto pt-12 pb-2 text-[13px] leading-relaxed text-[var(--color-text-faint)]">
         <p>
           Every channel is one{" "}
-          <code className="font-mono text-[var(--color-ink-muted)]">llm_instruction</code> on the{" "}
+          <code className="font-mono text-[var(--color-text-dim)]">llm_instruction</code> on the{" "}
           <a href="https://www.assemblyai.com/docs/dictation" target="_blank" rel="noreferrer noopener"
-             className="text-[var(--color-ink-muted)] underline decoration-[var(--color-hairline-strong)] underline-offset-2 hover:text-[var(--color-ink)]">
+             className="text-[var(--color-text-dim)] underline decoration-[var(--color-edge-lit)] underline-offset-2 hover:text-[var(--color-text)]">
             AssemblyAI Dictation API
           </a>. No other model is involved.
         </p>
@@ -201,5 +204,6 @@ export function CommandCenter({ seed, forceJson, demoFail }: {
       />
       <Toast toast={toast} onDone={() => setToast(null)} />
     </div>
+    </>
   );
 }
