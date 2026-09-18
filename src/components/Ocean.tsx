@@ -64,50 +64,81 @@ export function Ocean() {
           float fbm(vec2 p){
             float v=0.0, a=0.55;
             for(int i=0;i<6;i++){ v+=a*noise(p); p=p*2.03+vec2(1.7,9.2); a*=0.5; }
-            return v;
+            return clamp(v * 0.9 + 0.5, 0.0, 1.0);   // -> 0..1, so thresholds mean something
           }
 
           void main(){
             vec2 uv = gl_FragCoord.xy / uRes.xy;
-            vec2 p  = uv;
-            p.x *= uRes.x / uRes.y;
+            float agh = uRes.x / uRes.y;
+            float t = uTime * 0.05;
+            float swell = 0.5 + uSwell * 1.3;
 
-            float t = uTime * 0.085;
-            float swell = 0.55 + uSwell * 1.25;
+            const float HORIZON = 0.60;
 
-            // travelling swell: stacked wave trains moving at different speeds
-            float w1 = sin((p.x * 2.1 + p.y * 0.7) * 1.9 + t * 2.3);
-            float w2 = sin((p.x * 1.2 - p.y * 1.4) * 2.7 - t * 1.6);
-            float w3 = sin((p.x * 3.4 + p.y * 2.1) * 1.1 + t * 3.1);
-            float waves = (w1 * 0.5 + w2 * 0.33 + w3 * 0.2) * 0.5 * swell;
+            vec3 skyHigh = vec3(0.055, 0.180, 0.380);
+            vec3 skyLow  = vec3(0.180, 0.420, 0.620);
+            vec3 seaDeep = vec3(0.012, 0.075, 0.180);
+            vec3 seaMid  = vec3(0.043, 0.235, 0.420);
+            vec3 seaLit  = vec3(0.180, 0.520, 0.680);
+            vec3 foam    = vec3(0.780, 0.930, 0.980);
 
-            // turbulence riding on the swell
-            vec2 q = vec2(fbm(p * 1.6 + vec2(0.0, t * 1.1)),
-                          fbm(p * 1.6 + vec2(3.4, -t * 0.9)));
-            float body = fbm(p * 2.2 + q * 1.6 + vec2(0.0, t * 0.7) + waves * 0.35);
+            vec3 col;
 
-            // depth: darker toward the bottom, light spilling from the top
-            float depth = smoothstep(1.05, -0.25, uv.y);
+            if (uv.y > HORIZON) {
+              // ── sky and clouds ──
+              float k = (uv.y - HORIZON) / (1.0 - HORIZON);
+              col = mix(skyLow, skyHigh, pow(k, 0.85));
 
-            vec3 abyss   = vec3(0.016, 0.027, 0.062);
-            vec3 deepSea = vec3(0.043, 0.129, 0.243);
-            vec3 teal    = vec3(0.075, 0.376, 0.451);
-            vec3 crest   = vec3(0.435, 0.812, 0.847);
+              // two cloud decks drifting at different speeds
+              vec2 cp = vec2(uv.x * agh * 1.5, (uv.y - HORIZON) * 3.2);
+              float far  = fbm(cp * 1.5 + vec2(t * 1.7, 0.0));
+              float near = fbm(cp * 0.85 + vec2(t * 2.9, -t * 0.4) + far * 0.6);
 
-            vec3 col = mix(abyss, deepSea, smoothstep(-0.35, 0.55, body + waves * 0.4));
-            col = mix(col, teal, smoothstep(0.05, 0.85, body + 0.25 * waves) * (0.55 + uSwell * 0.5));
+              float deck1 = smoothstep(0.36, 0.78, far)  * (1.0 - k * 0.25);
+              float deck2 = smoothstep(0.44, 0.86, near) * (1.0 - k * 0.10);
 
-            // caustics: thin bright filaments where wave trains cross
-            float caustic = pow(max(0.0, 1.0 - abs(waves * 1.9 - body * 0.8)), 7.0);
-            col += crest * caustic * (0.32 + uSwell * 0.9);
+              vec3 cloudDark = vec3(0.090, 0.180, 0.310);
+              vec3 cloudLit  = vec3(0.680, 0.800, 0.900);
+              vec3 cloud = mix(cloudDark, cloudLit, smoothstep(0.42, 0.90, near));
 
-            // surface light from above
-            col += vec3(0.30, 0.55, 0.62) * pow(smoothstep(0.35, 1.15, uv.y), 2.4) * 0.30;
+              col = mix(col, cloud * 0.80, deck1 * 0.70);
+              col = mix(col, cloud, deck2 * 0.85);
 
-            col *= 0.45 + 0.55 * depth;
+              // light spilling along the horizon
+              col += vec3(0.35, 0.55, 0.70) * pow(1.0 - k, 6.0) * 0.30;
+            } else {
+              // ── water ──
+              float d = (HORIZON - uv.y) / HORIZON;          // 0 at horizon, 1 at the bottom
+              float persp = 1.0 / (d * 5.5 + 0.10);          // wave detail compresses to the horizon
 
-            float vig = smoothstep(1.45, 0.30, length((uv - 0.5) * vec2(uRes.x/uRes.y, 1.0)));
-            col *= 0.42 + 0.58 * vig;
+              vec2 wp = vec2(uv.x * agh, d);
+              float w1 = sin((wp.x * 3.1 + wp.y * 1.4) * persp * 0.55 + t * 5.0);
+              float w2 = sin((wp.x * 1.9 - wp.y * 2.2) * persp * 0.42 - t * 3.6);
+              float w3 = sin((wp.x * 5.4 + wp.y * 3.0) * persp * 0.30 + t * 7.0);
+              float waves = (w1 * 0.5 + w2 * 0.32 + w3 * 0.18) * swell;
+
+              float turb = fbm(vec2(wp.x * 2.2, d * 6.0) + vec2(0.0, t * 3.0) + waves * 0.25);
+
+              col = mix(seaMid, seaDeep, smoothstep(0.0, 0.95, d));
+              col = mix(col, seaLit, smoothstep(0.25, 1.05, waves * 0.5 + turb) * (0.60 - d * 0.30));
+
+              // sun glitter, a vertical path down the middle
+              float path = exp(-pow((uv.x - 0.52) * agh * 2.1, 2.0));
+              float glint = pow(max(0.0, waves * 0.45 + (turb - 0.35)), 5.0) * path;
+              col += foam * glint * (0.55 + uSwell * 1.1) * (1.0 - d * 0.55);
+
+              // crests breaking into foam
+              float crest = smoothstep(0.72, 1.05, waves * 0.5 + turb * 0.75);
+              col = mix(col, foam, crest * 0.26 * (1.0 - d * 0.65));
+
+              // haze where the water meets the sky
+              col = mix(col, skyLow * 0.9, pow(1.0 - d, 9.0) * 0.75);
+            }
+
+            // keep the page readable: darken overall, and more toward the centre
+            float vig = smoothstep(1.55, 0.25, length((uv - vec2(0.5, 0.52)) * vec2(agh, 1.0)));
+            col *= 0.60 + 0.34 * vig;
+            col *= 0.90 + 0.22 * uSwell;
 
             gl_FragColor = vec4(col, 1.0);
           }

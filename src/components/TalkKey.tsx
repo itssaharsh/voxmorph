@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef } from "react";
-import { Loader2, Mic, Square } from "lucide-react";
+import { Loader2, Mic } from "lucide-react";
 import type { RecorderStatus } from "@/hooks/useRecorder";
 
 type Props = {
@@ -12,16 +12,20 @@ type Props = {
   onStop: () => void;
 };
 
-const R = 38;
+const R = 30;
 const CIRC = 2 * Math.PI * R;
 
-/** Hold to talk. The ring is a level arc driven by real microphone RMS, so the
- *  one moving thing on the page is reporting something true. */
+/**
+ * Hold to talk. At rest this is a compact pill so it takes almost no page; it
+ * morphs into a ringed circle while recording, and the ring is a level arc driven
+ * by real microphone RMS. One element, one width transition, no layout jump.
+ */
 export function TalkKey({ status, level, busy, recordingMs, onStart, onStop }: Props) {
   const activeId = useRef<number | null>(null);
   const spaceDown = useRef(false);
   const recording = status === "recording";
   const working = status === "encoding" || busy;
+  const open = recording || working;
 
   const down = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
     if (working || activeId.current !== null) return;
@@ -57,20 +61,8 @@ export function TalkKey({ status, level, busy, recordingMs, onStart, onStop }: P
   }, [onStart, onStop]);
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex flex-col items-center gap-3 pt-36 pb-9
-                    [background:linear-gradient(180deg,transparent_0%,rgba(6,6,11,0.55)_12%,rgba(6,6,11,0.92)_30%,var(--color-void)_46%,var(--color-void)_100%)]">
-      <p className="h-5 text-[14px]">
-        {recording ? (
-          <span className="text-[var(--color-ember)]">
-            Listening · <span className="font-mono tabular-nums">{(recordingMs / 1000).toFixed(1)}s</span>
-          </span>
-        ) : working ? (
-          <span className="text-[var(--color-text-dim)]">Writing the channels…</span>
-        ) : (
-          <span className="text-[var(--color-text-faint)]">Hold to talk, or hold Space</span>
-        )}
-      </p>
-
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pt-10 pb-5
+                    [background:linear-gradient(180deg,transparent_0%,rgba(4,13,26,0.70)_45%,rgba(4,13,26,0.92)_100%)]">
       <button
         type="button"
         aria-label={recording ? "Release to send" : "Hold to talk"}
@@ -82,36 +74,61 @@ export function TalkKey({ status, level, busy, recordingMs, onStart, onStop }: P
         onLostPointerCapture={up}
         onContextMenu={(e) => e.preventDefault()}
         onDragStart={(e) => e.preventDefault()}
-        className="pointer-events-auto relative grid size-[86px] place-items-center rounded-full transition-transform duration-150 hover:scale-[1.04] active:scale-[0.97] disabled:cursor-wait"
+        className="pointer-events-auto relative grid place-items-center overflow-hidden rounded-full
+                   transition-[width,height,box-shadow,background] duration-[380ms] ease-[cubic-bezier(0.16,1,0.3,1)]
+                   active:translate-y-px disabled:cursor-wait"
         style={{
-          touchAction: "none", userSelect: "none", WebkitUserSelect: "none",
-          WebkitTouchCallout: "none", WebkitTapHighlightColor: "transparent",
-          background: working ? "rgba(255,255,255,0.10)" : "linear-gradient(160deg,#FF8A5B 0%,#FF6A3D 45%,#E0431C 100%)",
-          color: working ? "var(--color-text-faint)" : "#FFFFFF",
-          boxShadow: working
-            ? "none"
+          width: open ? 72 : 168,
+          height: open ? 72 : 44,
+          background: working
+            ? "rgba(255,255,255,0.12)"
             : recording
-              ? "0 0 0 10px rgba(255,106,61,0.14), 0 0 60px rgba(255,106,61,0.55), inset 0 1px 0 rgba(255,255,255,0.4)"
-              : "0 0 36px rgba(255,106,61,0.40), inset 0 1px 0 rgba(255,255,255,0.35)",
+              ? "linear-gradient(160deg,#FF8A5B 0%,#FF6A3D 45%,#E0431C 100%)"
+              : "linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.06))",
+          border: recording ? "none" : "1px solid rgba(255,255,255,0.22)",
+          backdropFilter: recording ? "none" : "blur(18px) saturate(140%)",
+          WebkitBackdropFilter: recording ? "none" : "blur(18px) saturate(140%)",
+          boxShadow: recording
+            ? "0 0 0 8px rgba(255,106,61,0.16), 0 0 46px rgba(255,106,61,0.5)"
+            : "0 6px 22px rgba(0,0,0,0.35)",
+          color: recording ? "#fff" : "var(--color-text)",
         }}
       >
-        <svg aria-hidden viewBox="0 0 86 86" className="absolute inset-0 size-full -rotate-90">
-          {recording && (
+        {/* level ring, only while live */}
+        {recording && (
+          <svg aria-hidden viewBox="0 0 72 72" className="absolute inset-0 size-full -rotate-90">
+            <circle cx="36" cy="36" r={R} fill="none" stroke="rgba(255,255,255,0.28)" strokeWidth="2.5" />
             <circle
-              cx="43" cy="43" r={R} fill="none"
-              stroke="rgba(255,255,255,0.9)" strokeWidth="2.5" strokeLinecap="round"
+              cx="36" cy="36" r={R} fill="none"
+              stroke="#fff" strokeWidth="2.5" strokeLinecap="round"
               strokeDasharray={CIRC}
               strokeDashoffset={CIRC * (1 - Math.min(1, level))}
               style={{ transition: "stroke-dashoffset 90ms linear" }}
             />
+          </svg>
+        )}
+
+        <span className="relative flex items-center gap-2 whitespace-nowrap px-4">
+          {working
+            ? <Loader2 className="size-5 animate-spin" aria-hidden style={{ pointerEvents: "none" }} />
+            : <Mic className={recording ? "size-5" : "size-4"} aria-hidden style={{ pointerEvents: "none" }} />}
+          {!open && (
+            <span className="text-[13px] font-medium tracking-tight">Hold to talk</span>
           )}
-        </svg>
-        {working
-          ? <Loader2 className="size-6 animate-spin" aria-hidden style={{ pointerEvents: "none" }} />
-          : recording
-            ? <Square className="size-5 fill-current" aria-hidden style={{ pointerEvents: "none" }} />
-            : <Mic className="size-6" aria-hidden style={{ pointerEvents: "none" }} />}
+          {recording && (
+            <span className="sr-only">{(recordingMs / 1000).toFixed(1)} seconds</span>
+          )}
+        </span>
       </button>
+
+      {/* the timer lives outside the button so the pill can stay small */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -top-1 font-mono text-[12px] tabular-nums transition-opacity duration-200"
+        style={{ opacity: recording ? 1 : 0, color: "#FFB59B" }}
+      >
+        {(recordingMs / 1000).toFixed(1)}s
+      </span>
     </div>
   );
 }

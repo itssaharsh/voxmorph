@@ -92,7 +92,7 @@ export function CommandCenter({ seed, forceJson, demoFail }: {
 
   return (
     <>
-    <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col px-4 pb-44 sm:px-6">
+    <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col px-4 pb-28 sm:px-6">
       <header className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 py-7">
         <h1 className="bg-gradient-to-r from-white via-[#D9CCFF] to-[#7FE3F5] bg-clip-text text-[22px] font-semibold tracking-[-0.03em] text-transparent">
           Voxmorph
