@@ -1,41 +1,43 @@
 "use client";
 import { useCallback, useReducer, useRef, useState } from "react";
 import { ChannelSkeleton, ChannelStrip } from "./ChannelStrip";
+import { CustomChannel } from "./CustomChannel";
 import { FloorFeed } from "./FloorFeed";
 import { TalkKey } from "./TalkKey";
 import { Toast, type ToastState } from "./Toast";
-import { Lamp } from "./Lamp";
 import { useRecorder } from "@/hooks/useRecorder";
 import { useMorphStream } from "@/hooks/useMorphStream";
 import { initialState, reducer, type State } from "@/state/reducer";
-import { AUDIENCES, WILDCARDS, getAudience } from "@/config/audiences";
+import { AUDIENCES, WILDCARDS, getAudience, CUSTOM_ID } from "@/config/audiences";
 import { SUPPORTED_LANGUAGES } from "@/config/constants";
 import { TriangleAlert } from "lucide-react";
 
-/** Channel numbers are fixed positions on the rack, like decimal places on an
- *  instrument: floor is 00, the API's own cleanup is 01, audiences follow. */
 const channelOf = (id: string) => {
   const i = AUDIENCES.findIndex((a) => a.id === id);
   if (i >= 0) return i + 1;
+  if (id === CUSTOM_ID) return 7;
   const w = WILDCARDS.findIndex((x) => x.id === id);
-  return w >= 0 ? 90 + w + 1 : 99;
+  return w >= 0 ? 8 + w : 99;
 };
-const tintOf = (id: string) => getAudience(id)?.tint ?? "wild";
+const tintOf = (id: string) =>
+  getAudience(id)?.tint ?? (id === CUSTOM_ID ? "custom" : "amber");
 const labelOf = (id: string) =>
   getAudience(id)?.label ?? WILDCARDS.find((w) => w.id === id)?.label ?? id;
 
-export function CommandCenter({ seed, forceJson, demoFail }: { seed?: Partial<State>; forceJson?: boolean; demoFail?: boolean }) {
+export function CommandCenter({ seed, forceJson, demoFail }: {
+  seed?: Partial<State>; forceJson?: boolean; demoFail?: boolean;
+}) {
   const [state, dispatch] = useReducer(
     reducer,
     seed ? { ...initialState, ...seed, isExample: true, status: "ready" as const } : initialState
   );
   const [toast, setToast] = useState<ToastState>(null);
-  const { morph } = useMorphStream(dispatch);
+  const { morph, transcribeOnly } = useMorphStream(dispatch);
 
-  // The last WAV stays in memory so a wildcard or a retry never needs the user to
-  // speak again, which is what makes a second take safe during a demo.
+  // The last recording stays in memory so a new channel never needs the user to
+  // speak the whole update again.
   const lastWav = useRef<Blob | null>(null);
-  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const tick = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const say = useCallback((message: string, kind: "ok" | "warn" = "ok") => {
     setToast({ id: Date.now(), kind, message });
@@ -44,21 +46,18 @@ export function CommandCenter({ seed, forceJson, demoFail }: { seed?: Partial<St
   const recorder = useRecorder(useCallback((m: string) => say(m, "warn"), [say]));
 
   const onStart = useCallback(() => {
-    // Warm the exact function that is about to receive the audio.
     void fetch("/api/morph", { method: "GET", cache: "no-store" }).catch(() => {});
     void recorder.start().then((began) => {
       if (!began) return;
       dispatch({ type: "recording:start" });
       const t0 = performance.now();
-      tickRef.current = setInterval(
-        () => dispatch({ type: "recording:tick", ms: performance.now() - t0 }),
-        100
-      );
+      tick.current = setInterval(
+        () => dispatch({ type: "recording:tick", ms: performance.now() - t0 }), 100);
     });
   }, [recorder]);
 
   const onStop = useCallback(() => {
-    if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
+    if (tick.current) { clearInterval(tick.current); tick.current = null; }
     void (async () => {
       const result = await recorder.stop();
       if (!result) { dispatch({ type: "reset" }); return; }
@@ -69,47 +68,44 @@ export function CommandCenter({ seed, forceJson, demoFail }: { seed?: Partial<St
   }, [recorder, morph, state.language, forceJson, demoFail]);
 
   const copy = useCallback(async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      say("Copied. Ready to paste.");
-    } catch {
-      say("Could not reach the clipboard.", "warn");
-    }
+    try { await navigator.clipboard.writeText(text); say("Copied."); }
+    catch { say("Could not reach the clipboard.", "warn"); }
   }, [say]);
 
-  const patchOne = useCallback((id: string) => {
-    if (!lastWav.current) { say("Speak once first.", "warn"); return; }
-    void morph(lastWav.current, { lang: state.language, audiences: [id], forceJson, demoFail });
+  const runChannel = useCallback((id: string, custom?: string) => {
+    if (!lastWav.current) { say("Say something first.", "warn"); return; }
+    void morph(lastWav.current, { lang: state.language, audiences: [id], forceJson, demoFail, custom });
   }, [morph, state.language, forceJson, demoFail, say]);
+
+  /** Record a short clip and hand back what the API heard, for the custom channel. */
+  const dictateAudience = useCallback(async (): Promise<string | null> => {
+    const began = await recorder.start();
+    if (!began) return null;
+    await new Promise((r) => setTimeout(r, 2600));   // a short, fixed listening window
+    const result = await recorder.stop();
+    if (!result) return null;
+    return transcribeOnly(result.wav, state.language);
+  }, [recorder, transcribeOnly, state.language]);
 
   const busy = state.status === "processing";
   const cards = state.order.map((id) => state.cards[id]).filter(Boolean);
-  const live = recorder.status === "recording";
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pb-44 sm:px-6">
-      {/* Console header */}
-      <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-[var(--color-bevel)] py-4">
-        <div className="flex items-baseline gap-3">
-          <span className="font-[family-name:var(--font-legend)] text-[22px] font-semibold tracking-[0.2em] text-[var(--color-engrave)] uppercase">
-            Voxmorph
-          </span>
-          <span className="hidden text-[13px] text-[var(--color-engrave-faint)] sm:inline">
-            one voice in, six channels out
-          </span>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-2" aria-live="polite">
-            <Lamp tint={live ? "rose" : "floor"} lit={live} size={7} />
-            <span className="vx-legend text-[10px]">{live ? "On air" : "Standby"}</span>
-          </span>
-          <label className="sr-only" htmlFor="lang">Floor language</label>
+    <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col px-4 pb-44 sm:px-6">
+      <header className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 py-7">
+        <h1 className="text-[20px] font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
+          Voxmorph
+        </h1>
+        <div className="flex items-baseline gap-5">
+          <p className="hidden text-[14px] text-[var(--color-ink-faint)] sm:block">
+            Say it once. Send it six ways.
+          </p>
+          <label className="sr-only" htmlFor="lang">Language</label>
           <select
             id="lang"
             value={state.language}
             onChange={(e) => dispatch({ type: "language", code: e.target.value })}
-            className="vx-panel px-2 py-1 font-mono text-[11px] text-[var(--color-engrave-dim)] outline-none"
+            className="rounded-[var(--radius)] border border-[var(--color-hairline)] bg-[var(--color-surface)] px-2 py-1 text-[13px] text-[var(--color-ink-muted)] outline-none"
           >
             {SUPPORTED_LANGUAGES.map((l) => (
               <option key={l.code} value={l.code}>{l.label}</option>
@@ -119,50 +115,26 @@ export function CommandCenter({ seed, forceJson, demoFail }: { seed?: Partial<St
       </header>
 
       {state.error && (
-        <div
-          role="alert"
-          className="vx-panel mt-4 flex items-start gap-2.5 px-4 py-3 text-[13px]"
-          style={{ borderColor: "var(--color-live)" }}
-        >
-          <TriangleAlert className="mt-0.5 size-4 shrink-0 text-[var(--color-live)]" aria-hidden />
+        <div role="alert" className="sheet mb-5 flex items-start gap-3 p-4 text-[15px]"
+             style={{ borderColor: "var(--color-accent)", background: "var(--color-accent-wash)" }}>
+          <TriangleAlert className="mt-0.5 size-4 shrink-0 text-[var(--color-accent-text)]" aria-hidden />
           <div>
-            <p className="text-[var(--color-engrave)]">{state.error.message}</p>
-            <p className="mt-0.5 font-mono text-[11px] text-[var(--color-engrave-faint)]">
-              {state.error.code}
-            </p>
+            <p className="text-[var(--color-ink)]">{state.error.message}</p>
+            <p className="mt-0.5 font-mono text-[12px] text-[var(--color-ink-faint)]">{state.error.code}</p>
           </div>
         </div>
       )}
 
-      <div className="mt-5">
-        <FloorFeed transcript={state.transcript} loading={busy} />
-      </div>
+      <FloorFeed transcript={state.transcript} loading={busy} />
 
       {state.isExample && (
-        <p className="mt-2 text-[12px] text-[var(--color-engrave-faint)]">
-          Saved example from a real API response.
+        <p className="mt-2.5 text-[13px] text-[var(--color-ink-faint)]">
+          A saved example from a real API response. Hold the button to run your own.
         </p>
       )}
 
-      {/* The rack */}
-      <div className="mt-6 flex items-baseline justify-between gap-4 border-b border-[var(--color-bevel)] pb-2 sm:mt-8">
-        <span className="vx-legend text-[11px]">Channels</span>
-        {state.summary && (
-          <span className="font-mono text-[11px] tabular-nums text-[var(--color-engrave-faint)]">
-            {state.summary.ok} clear
-            {state.summary.degraded ? ` · ${state.summary.degraded} relayed` : ""}
-            {state.summary.failed ? ` · ${state.summary.failed} down` : ""}
-            {` · ${state.summary.totalMs}ms`}
-          </span>
-        )}
-      </div>
-
-      {cards.length === 0 && state.pending.length === 0 ? (
-        <p className="mt-6 text-[15px] text-[var(--color-engrave-faint)]">
-          Five audience channels patch in here, plus the API&apos;s own cleanup on channel 01.
-        </p>
-      ) : (
-        <div className="vx-rack mt-3">
+      {(cards.length > 0 || state.pending.length > 0) && (
+        <div className="sheet mt-7 divide-y divide-[var(--color-hairline)] overflow-hidden">
           {cards.map((card, i) => (
             <ChannelStrip
               key={card.id}
@@ -171,31 +143,31 @@ export function CommandCenter({ seed, forceJson, demoFail }: { seed?: Partial<St
               tint={tintOf(card.id)}
               index={i}
               onCopy={copy}
-              onRetry={patchOne}
+              onRetry={(id) => runChannel(id)}
               onEdit={(id, text) => dispatch({ type: "card:edit", id, text })}
             />
           ))}
           {state.pending.map((id) => (
-            <ChannelSkeleton
-              key={id}
-              label={labelOf(id)}
-              channel={channelOf(id)}
-              tint={tintOf(id)}
-            />
+            <ChannelSkeleton key={id} label={labelOf(id)} channel={channelOf(id)} tint={tintOf(id)} />
           ))}
+          <CustomChannel
+            ready={!!lastWav.current && !state.isExample}
+            busy={busy}
+            onDictate={dictateAudience}
+            onSubmit={(audience) => runChannel(CUSTOM_ID, audience)}
+          />
         </div>
       )}
 
-      {lastWav.current && (state.status === "ready" || cards.length > 0) && (
-        <div className="mt-6 flex flex-wrap items-center gap-2">
-          <span className="vx-legend text-[10px]">Patch another</span>
+      {lastWav.current && !busy && (
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          <span className="text-[13px] text-[var(--color-ink-faint)]">Or try:</span>
           {WILDCARDS.map((w) => (
             <button
               key={w.id}
               type="button"
-              onClick={() => patchOne(w.id)}
-              disabled={busy}
-              className="vx-panel px-3 py-1 text-[12px] text-[var(--color-engrave-dim)] transition-[color,border-color,transform] hover:border-[var(--color-bevel-lit)] hover:text-[var(--color-engrave)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40"
+              onClick={() => runChannel(w.id)}
+              className="rounded-full border border-[var(--color-hairline-strong)] px-3 py-1 text-[13px] text-[var(--color-ink-muted)] transition-colors hover:border-[var(--color-ink-faint)] hover:text-[var(--color-ink)] active:translate-y-px"
             >
               {w.label}
             </button>
@@ -203,24 +175,19 @@ export function CommandCenter({ seed, forceJson, demoFail }: { seed?: Partial<St
         </div>
       )}
 
-      <footer className="mt-auto border-t border-[var(--color-bevel)] pt-5 pb-2 text-[13px] leading-relaxed text-[var(--color-engrave-faint)]">
+      <footer className="mt-auto pt-12 pb-2 text-[13px] leading-relaxed text-[var(--color-ink-faint)]">
         <p>
-          Every channel above is a separate{" "}
-          <code className="text-[var(--color-engrave-dim)]">llm_instruction</code> on the{" "}
-          <a
-            href="https://www.assemblyai.com/docs/dictation"
-            target="_blank"
-            rel="noreferrer noopener"
-            className="text-[var(--color-engrave-dim)] underline decoration-dotted underline-offset-2 hover:text-[var(--color-engrave)]"
-          >
+          Every channel is one{" "}
+          <code className="font-mono text-[var(--color-ink-muted)]">llm_instruction</code> on the{" "}
+          <a href="https://www.assemblyai.com/docs/dictation" target="_blank" rel="noreferrer noopener"
+             className="text-[var(--color-ink-muted)] underline decoration-[var(--color-hairline-strong)] underline-offset-2 hover:text-[var(--color-ink)]">
             AssemblyAI Dictation API
-          </a>
-          . No other model is involved.
+          </a>. No other model is involved.
         </p>
         <p className="mt-1">
-          Channel 00 is <code>text</code>, the verbatim floor feed. Channel 01 is{" "}
-          <code>llm_response</code> with no instruction, which is the API&apos;s own cleanup.
-          The struck words are the difference between them.
+          Channel 00 is <code className="font-mono">text</code>, verbatim. Channel 01 is{" "}
+          <code className="font-mono">llm_response</code> with no instruction, the API&apos;s own
+          cleanup. The struck words are the difference.
         </p>
       </footer>
 

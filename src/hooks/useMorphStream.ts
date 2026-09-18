@@ -21,11 +21,12 @@ export function useMorphStream(dispatch: (a: Action) => void) {
   const abortRef = useRef<AbortController | null>(null);
 
   const post = useCallback(
-    async (wav: Blob, opts: { lang: string; audiences?: string[]; stream: boolean; demoFail?: boolean }) => {
+    async (wav: Blob, opts: { lang: string; audiences?: string[]; stream: boolean; demoFail?: boolean; custom?: string }) => {
       const params = new URLSearchParams({ lang: opts.lang });
       if (opts.audiences?.length) params.set("audiences", opts.audiences.join(","));
       if (!opts.stream) params.set("stream", "0");
       if (opts.demoFail) params.set("demo", "fail");
+      if (opts.custom) params.set("custom", opts.custom);
       return fetch(`/api/morph?${params}`, {
         method: "POST",
         headers: { "Content-Type": "audio/wav" },
@@ -37,7 +38,7 @@ export function useMorphStream(dispatch: (a: Action) => void) {
   );
 
   const morph = useCallback(
-    async (wav: Blob, opts: { lang: string; audiences?: string[]; forceJson?: boolean; demoFail?: boolean }) => {
+    async (wav: Blob, opts: { lang: string; audiences?: string[]; forceJson?: boolean; demoFail?: boolean; custom?: string }) => {
       abortRef.current?.abort();
       abortRef.current = new AbortController();
 
@@ -98,5 +99,22 @@ export function useMorphStream(dispatch: (a: Action) => void) {
   );
 
   const abort = useCallback(() => abortRef.current?.abort(), []);
-  return { morph, abort };
+
+  /** Transcribe a short clip without touching app state. Used to hear a spoken
+   *  audience description; returns the API's cleaned text, falling back to
+   *  verbatim. Runs the baseline channel only, so it is one upstream call. */
+  const transcribeOnly = useCallback(async (wav: Blob, lang: string): Promise<string | null> => {
+    try {
+      const res = await fetch(`/api/morph?lang=${encodeURIComponent(lang)}&audiences=baseline&stream=0`, {
+        method: "POST", headers: { "Content-Type": "audio/wav" }, body: wav,
+      });
+      if (!res.ok) return null;
+      const json = (await res.json()) as MorphJson;
+      return json.transcript?.clean ?? json.transcript?.verbatim ?? null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  return { morph, abort, transcribeOnly };
 }

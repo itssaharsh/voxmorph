@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { Check, Copy, Pencil, RotateCw } from "lucide-react";
 import type { Card } from "@/state/types";
 import type { Tint } from "@/config/audiences";
-import { Lamp, lampColor } from "./Lamp";
+import { useDealIn } from "@/hooks/useMotion";
+import { Dot, hueOf } from "./Dot";
 
 type Props = {
   card: Card;
@@ -15,18 +16,16 @@ type Props = {
   onEdit: (id: string, text: string) => void;
 };
 
-/**
- * One channel on the rack. A row, not a card: the message is prose and wants a
- * real measure, and a grid of equally sized tinted boxes is the arrangement this
- * console exists to refuse. Identity is the channel number plus a 6px lamp.
- */
+/** One channel: a row on a sheet, divided from its neighbours by a hairline.
+ *  Prose wants a measure and a hairline, not a card with a coloured border. */
 export function ChannelStrip({ card, channel, tint, index, onCopy, onRetry, onEdit }: Props) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(card.text ?? "");
-  const ref = useRef<HTMLTextAreaElement>(null);
+  const ta = useRef<HTMLTextAreaElement>(null);
+  const ref = useDealIn(true, index) as React.RefObject<HTMLElement | null>;
 
   useEffect(() => { if (!editing) setDraft(card.text ?? ""); }, [card.text, editing]);
-  useEffect(() => { if (editing) { ref.current?.focus(); ref.current?.select(); } }, [editing]);
+  useEffect(() => { if (editing) { ta.current?.focus(); ta.current?.select(); } }, [editing]);
 
   const commit = () => {
     setEditing(false);
@@ -39,30 +38,26 @@ export function ChannelStrip({ card, channel, tint, index, onCopy, onRetry, onEd
 
   return (
     <article
-      className="animate-patch grid grid-cols-[auto_1fr] items-start gap-x-4 gap-y-2 px-4 py-5 sm:grid-cols-[7.5rem_1fr] sm:gap-x-6 sm:px-6"
-      style={{ animationDelay: `${Math.min(index, 6) * 65}ms` }}
+      ref={ref as React.RefObject<HTMLElement>}
+      className="grid grid-cols-1 gap-x-8 gap-y-3 px-5 py-6 sm:grid-cols-[9rem_1fr] sm:px-7"
     >
-      {/* Channel selector: number, lamp, engraved name */}
-      <div className="flex items-center gap-2.5 pt-0.5 sm:flex-col sm:items-start sm:gap-1.5">
-        <div className="flex items-center gap-2">
-          <Lamp tint={tint} lit={!dead} />
-          <span className="font-mono text-[13px] tabular-nums text-[var(--color-engrave)]">
+      <header className="flex items-center gap-2.5 sm:flex-col sm:items-start sm:gap-2">
+        <span className="flex items-center gap-2">
+          <Dot tint={tint} muted={dead} />
+          <span
+            className="font-mono text-[12px] tabular-nums"
+            style={{ color: dead ? "var(--color-ink-faint)" : hueOf(tint) }}
+          >
             {String(channel).padStart(2, "0")}
           </span>
-        </div>
-        <span className="vx-legend text-[10px] leading-tight">{card.label}</span>
-        <span
-          aria-hidden
-          className="hidden h-px w-8 sm:block"
-          style={{ background: dead ? "var(--color-bevel)" : lampColor(tint), opacity: 0.55 }}
-        />
-      </div>
+        </span>
+        <h3 className="legend text-[11px] leading-snug text-[var(--color-ink-muted)]">{card.label}</h3>
+      </header>
 
-      {/* The message */}
       <div className="min-w-0">
         {editing ? (
           <textarea
-            ref={ref}
+            ref={ta}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onBlur={commit}
@@ -72,83 +67,73 @@ export function ChannelStrip({ card, channel, tint, index, onCopy, onRetry, onEd
             }}
             rows={4}
             aria-label={`Edit the ${card.label} message`}
-            className="w-full resize-y border border-[var(--color-bevel-lit)] bg-[var(--color-hall-deep)] p-2.5 text-[15px] leading-relaxed text-[var(--color-engrave)] outline-none"
+            className="w-full resize-y rounded-[var(--radius)] border border-[var(--color-hairline-strong)] bg-[var(--color-surface)] p-3 text-[16px] leading-[1.6] text-[var(--color-ink)] outline-none focus-visible:border-[var(--color-accent)]"
           />
         ) : (
-          <p className="max-w-[28rem] text-[15px] leading-[1.65] whitespace-pre-wrap text-[var(--color-engrave)]">
+          <p className="max-w-[62ch] text-[16px] leading-[1.6] whitespace-pre-wrap text-[var(--color-ink)]">
             {card.text ?? (
-              <span className="text-[var(--color-engrave-faint)]">
-                {card.error?.message ?? "No signal on this channel."}
+              <span className="text-[var(--color-ink-faint)]">
+                {card.error?.message ?? "No response on this channel."}
               </span>
             )}
           </p>
         )}
 
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            {/* "Relay" is the interpreter's term for routing through another
-                language when no direct channel exists. That is exactly what a
-                failed rewrite does when it falls back to the baseline cleanup. */}
-            {relayed && (
-              <span
-                className="text-[12px] text-[var(--color-lamp-clean)]"
-                title={`The rewrite did not complete (llm_error: ${card.llmError}). Showing the API's cleaned floor text.`}
-              >
-                {card.retrying ? "relaying, retrying" : <>relayed from floor · <span className="font-mono">{card.llmError}</span></>}
-              </span>
-            )}
-            {dead && (
-              <span className="text-[12px] text-[var(--color-live-text)]">
-                channel down · <span className="font-mono">{card.error?.code}</span>
-              </span>
-            )}
-            {card.edited && (
-              <span className="text-[12px] text-[var(--color-engrave-faint)]">edited</span>
-            )}
-            <span className="font-mono text-[11px] tabular-nums text-[var(--color-engrave-faint)]">
-              {card.text ? `${card.text.length} ch` : "no text"}
-              {card.requestTimeMs ? ` · ${card.requestTimeMs}ms` : ""}
-              {card.attempts > 1 ? ` · ${card.attempts} tries` : ""}
+        <div className="mt-3.5 flex flex-wrap items-center gap-x-4 gap-y-2">
+          {/* "Relay" is the interpreter's term for routing through another language
+              when no direct channel exists, which is what a failed rewrite does. */}
+          {relayed && (
+            <span
+              className="text-[13px] text-[var(--color-accent-text)]"
+              title={`The rewrite did not complete (llm_error: ${card.llmError}). Showing the API's cleaned transcript.`}
+            >
+              {card.retrying ? "relaying, retrying" : <>relayed from floor · <span className="font-mono">{card.llmError}</span></>}
             </span>
-          </div>
+          )}
+          {dead && (
+            <span className="text-[13px] text-[var(--color-accent-text)]">
+              channel down · <span className="font-mono">{card.error?.code}</span>
+            </span>
+          )}
+          {card.edited && <span className="text-[13px] text-[var(--color-ink-faint)]">edited</span>}
 
-          <div className="flex items-center gap-0.5">
+          <span className="font-mono text-[12px] tabular-nums text-[var(--color-ink-faint)]">
+            {card.text ? `${card.text.length}` : "—"}
+          </span>
+
+          <span className="ml-auto flex items-center gap-1">
             {dead && card.error?.retryable && (
-              <Key label={`Retry ${card.label}`} onClick={() => onRetry(card.id)}>
+              <Ghost label={`Retry ${card.label}`} onClick={() => onRetry(card.id)}>
                 <RotateCw className="size-3.5" aria-hidden />
-              </Key>
+              </Ghost>
             )}
             {card.text && (
               <>
-                <Key label={`Edit the ${card.label} message`} onClick={() => setEditing(true)}>
+                <Ghost label={`Edit the ${card.label} message`} onClick={() => setEditing(true)}>
                   <Pencil className="size-3.5" aria-hidden />
-                </Key>
-                <CopyKey text={card.text} label={card.label} onCopy={onCopy} />
+                </Ghost>
+                <CopyButton text={card.text} label={card.label} onCopy={onCopy} />
               </>
             )}
-          </div>
+          </span>
         </div>
       </div>
     </article>
   );
 }
 
-/** Console keys answer to handling: they seat 1px on press. */
-function Key({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+function Ghost({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      title={label}
-      className="border border-transparent p-1.5 text-[var(--color-engrave-faint)] transition-[color,background-color,transform] hover:border-[var(--color-bevel)] hover:bg-[var(--color-panel-raised)] hover:text-[var(--color-engrave)] active:translate-y-px"
+      type="button" onClick={onClick} aria-label={label} title={label}
+      className="rounded-[var(--radius)] p-2 text-[var(--color-ink-faint)] transition-colors hover:bg-[var(--color-sunk)] hover:text-[var(--color-ink)] active:translate-y-px"
     >
       {children}
     </button>
   );
 }
 
-function CopyKey({ text, label, onCopy }: { text: string; label: string; onCopy: (t: string) => void }) {
+function CopyButton({ text, label, onCopy }: { text: string; label: string; onCopy: (t: string) => void }) {
   const [done, setDone] = useState(false);
   useEffect(() => {
     if (!done) return;
@@ -160,11 +145,10 @@ function CopyKey({ text, label, onCopy }: { text: string; label: string; onCopy:
       type="button"
       onClick={() => { onCopy(text); setDone(true); }}
       aria-label={`Copy the ${label} message`}
-      title="Copy"
-      className={`vx-legend flex items-center gap-1.5 border px-2.5 py-1.5 text-[10px] transition-[color,background-color,border-color,transform] active:translate-y-px ${
+      className={`flex items-center gap-1.5 rounded-[var(--radius)] border px-2.5 py-1.5 text-[12px] transition-colors active:translate-y-px ${
         done
-          ? "border-[var(--color-lamp-team)] text-[var(--color-lamp-team)]"
-          : "border-[var(--color-bevel)] bg-[var(--color-panel-raised)] text-[var(--color-engrave-dim)] hover:border-[var(--color-bevel-lit)] hover:text-[var(--color-engrave)]"
+          ? "border-[var(--color-accent)] text-[var(--color-accent-text)]"
+          : "border-[var(--color-hairline-strong)] text-[var(--color-ink-muted)] hover:border-[var(--color-ink-faint)] hover:text-[var(--color-ink)]"
       }`}
     >
       {done ? <Check className="size-3.5" aria-hidden /> : <Copy className="size-3.5" aria-hidden />}
@@ -175,22 +159,19 @@ function CopyKey({ text, label, onCopy }: { text: string; label: string; onCopy:
 
 export function ChannelSkeleton({ label, channel, tint }: { label: string; channel: number; tint: Tint | string }) {
   return (
-    <article
-      className="grid grid-cols-[auto_1fr] items-start gap-x-4 px-4 py-5 sm:grid-cols-[7.5rem_1fr] sm:gap-x-6 sm:px-6"
-      aria-hidden
-    >
-      <div className="flex items-center gap-2.5 pt-0.5 sm:flex-col sm:items-start sm:gap-1.5">
-        <div className="flex items-center gap-2">
-          <Lamp tint={tint} lit={false} />
-          <span className="font-mono text-[13px] tabular-nums text-[var(--color-engrave-faint)]">
+    <article className="grid grid-cols-1 gap-x-8 gap-y-3 px-5 py-6 sm:grid-cols-[9rem_1fr] sm:px-7" aria-hidden>
+      <header className="flex items-center gap-2.5 sm:flex-col sm:items-start sm:gap-2">
+        <span className="flex items-center gap-2">
+          <Dot tint={tint} muted />
+          <span className="font-mono text-[12px] tabular-nums text-[var(--color-ink-faint)]">
             {String(channel).padStart(2, "0")}
           </span>
-        </div>
-        <span className="vx-legend text-[10px] text-[var(--color-engrave-faint)]">{label}</span>
-      </div>
-      <div className="space-y-2 py-0.5">
-        <div className="h-3 w-full animate-pulse bg-[var(--color-panel-raised)]" />
-        <div className="h-3 w-9/12 animate-pulse bg-[var(--color-panel-raised)]" />
+        </span>
+        <span className="legend text-[11px] text-[var(--color-ink-faint)]">{label}</span>
+      </header>
+      <div className="space-y-2.5 py-1">
+        <div className="h-3.5 w-full animate-pulse rounded bg-[var(--color-sunk)]" />
+        <div className="h-3.5 w-8/12 animate-pulse rounded bg-[var(--color-sunk)]" />
       </div>
     </article>
   );

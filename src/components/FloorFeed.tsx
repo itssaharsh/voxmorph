@@ -3,16 +3,16 @@ import { useMemo, useState } from "react";
 import { diffVerbatim, removedCount } from "@/lib/diff";
 import { LOW_CONFIDENCE } from "@/config/constants";
 import type { Transcript } from "@/state/types";
-import { Lamp } from "./Lamp";
+import { useStrikeDraw } from "@/hooks/useMotion";
+import { Dot } from "./Dot";
 
 /**
- * Channel 00, the floor.
+ * Channel 00, the floor: the words as spoken.
  *
- * In conference interpretation the floor is the original speaker's audio, passed
- * through untouched. That is exactly what the Dictation API returns as `text`:
- * verbatim, fillers intact, never altered. The struck words below are the
- * difference between it and `llm_response` from a call carrying no instruction,
- * which is the API's own default cleanup. Nothing here is our regex.
+ * `text` from the Dictation API is verbatim and never altered. `llm_response`
+ * from a call carrying no instruction is AssemblyAI's own default cleanup. The
+ * struck words below are the difference between them, so the strike is their
+ * model's work, not a filler list of ours.
  */
 export function FloorFeed({ transcript, loading }: { transcript: Transcript | null; loading: boolean }) {
   const [cleaned, setCleaned] = useState(false);
@@ -22,6 +22,7 @@ export function FloorFeed({ transcript, loading }: { transcript: Transcript | nu
     [transcript]
   );
   const removed = removedCount(tokens);
+  const bodyRef = useStrikeDraw(transcript?.verbatim);
 
   const uncertain = useMemo(() => {
     const s = new Set<number>();
@@ -29,23 +30,44 @@ export function FloorFeed({ transcript, loading }: { transcript: Transcript | nu
     return s;
   }, [transcript]);
 
-  return (
-    <section className="vx-floor px-4 py-4 sm:px-7 sm:py-6">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
-        <div className="flex items-center gap-2.5">
-          <Lamp tint="floor" lit={!!transcript} />
-          <span className="vx-legend text-[11px]">CH 00 · Floor</span>
-          <span className="text-[12px] text-[var(--color-engrave-faint)]">as spoken</span>
+  if (loading && !transcript) {
+    return (
+      <section className="sheet p-6 sm:p-8">
+        <div className="space-y-3" aria-hidden>
+          <div className="h-5 w-11/12 animate-pulse rounded bg-[var(--color-sunk)]" />
+          <div className="h-5 w-7/12 animate-pulse rounded bg-[var(--color-sunk)]" />
         </div>
+      </section>
+    );
+  }
 
-        {transcript?.clean && (
-          <div className="flex items-center gap-3">
+  if (!transcript) {
+    return (
+      <section className="sheet px-6 py-14 text-center sm:px-8">
+        <p className="text-[19px] text-[var(--color-ink-muted)]">Hold the button. Say anything.</p>
+        <p className="mx-auto mt-2 max-w-sm text-[14px] text-[var(--color-ink-faint)]">
+          One sentence becomes six, each written for someone different.
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="sheet p-5 sm:p-8">
+      <div className="mb-4 flex sm:mb-5 flex-wrap items-center justify-between gap-x-5 gap-y-2">
+        <span className="flex items-center gap-2.5">
+          <Dot tint="floor" />
+          <span className="legend text-[11px]">What you said</span>
+        </span>
+
+        {transcript.clean && (
+          <div className="flex items-center gap-4">
             {removed > 0 && (
-              <span className="text-[12px] text-[var(--color-lamp-clean)]">
-                <span className="font-mono tabular-nums">{removed}</span> removed by the API
+              <span className="text-[13px] text-[var(--color-accent-text)]">
+                {removed} removed by the API
               </span>
             )}
-            <div className="flex border border-[var(--color-bevel)]" role="group" aria-label="Floor feed view">
+            <div className="flex rounded-[var(--radius)] bg-[var(--color-sunk)] p-0.5" role="group" aria-label="Transcript view">
               <Toggle active={!cleaned} onClick={() => setCleaned(false)}>Verbatim</Toggle>
               <Toggle active={cleaned} onClick={() => setCleaned(true)}>Cleaned</Toggle>
             </div>
@@ -53,48 +75,30 @@ export function FloorFeed({ transcript, loading }: { transcript: Transcript | nu
         )}
       </div>
 
-      <div className="mt-3 border-t border-[var(--color-bevel)] pt-3 sm:mt-3.5 sm:pt-3.5">
-        {loading && !transcript ? (
-          <div className="space-y-2.5" aria-hidden>
-            <div className="h-3.5 w-11/12 animate-pulse bg-[var(--color-panel-raised)]" />
-            <div className="h-3.5 w-8/12 animate-pulse bg-[var(--color-panel-raised)]" />
-          </div>
-        ) : !transcript ? (
-          <p className="text-[15px] text-[var(--color-engrave-faint)]">Channel open. Hold the key and speak.</p>
-        ) : (
-          <p
-            className="max-w-[44rem] font-mono text-[16px] leading-[1.55] sm:text-[26px] sm:leading-[1.55] text-[var(--color-engrave)]"
-            aria-live="polite"
-          >
-            {cleaned
-              ? transcript.clean
-              : tokens.map((t, i) => (
-                  <span
-                    key={i}
-                    className={
-                      t.removed ? "vx-struck" : uncertain.has(i) ? "vx-uncertain" : undefined
-                    }
-                    title={t.removed ? "Removed by the Dictation API's own cleanup" : undefined}
-                  >
-                    {t.text}
-                    {i < tokens.length - 1 ? " " : ""}
-                  </span>
-                ))}
-          </p>
-        )}
-      </div>
+      <p
+        ref={bodyRef}
+        className="max-w-[52ch] font-mono text-[17px] leading-[1.55] tracking-[-0.01em] text-[var(--color-ink)] sm:text-[26px] sm:leading-[1.5]"
+        aria-live="polite"
+      >
+        {cleaned
+          ? transcript.clean
+          : tokens.map((t, i) => (
+              <span
+                key={i}
+                className={t.removed ? "struck" : uncertain.has(i) ? "uncertain" : undefined}
+                title={t.removed ? "Removed by the Dictation API's own cleanup" : undefined}
+              >
+                {t.text}{i < tokens.length - 1 ? " " : ""}
+              </span>
+            ))}
+      </p>
 
-      {transcript && (
-        <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1 border-t border-[var(--color-bevel)] pt-2.5 sm:mt-4 sm:gap-x-6 sm:pt-3">
-          <Readout label="signal" value={`${(transcript.confidence * 100).toFixed(1)}%`} />
-          <Readout label="words" value={String(transcript.words.length)} />
-          <Readout label="length" value={`${(transcript.audioDurationMs / 1000).toFixed(1)}s`} />
-          {transcript.requestTimeMs ? (
-            <Readout label="server" value={`${Math.round(transcript.requestTimeMs)}ms`} />
-          ) : null}
-          {uncertain.size > 0 && <Readout label="uncertain" value={String(uncertain.size)} />}
-        </dl>
-      )}
+      <p className="mt-5 border-t border-[var(--color-hairline)] pt-3.5 text-[13px] text-[var(--color-ink-faint)] sm:mt-6 sm:pt-4">
+        {(transcript.audioDurationMs / 1000).toFixed(1)}s of audio
+        {" · "}{transcript.words.length} words
+        {" · "}{(transcript.confidence * 100).toFixed(0)}% confidence
+        {uncertain.size > 0 && <> · <span className="uncertain">{uncertain.size} uncertain</span></>}
+      </p>
     </section>
   );
 }
@@ -105,23 +109,13 @@ function Toggle({ active, onClick, children }: { active: boolean; onClick: () =>
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`vx-legend px-2.5 py-1 text-[10px] transition-colors ${
+      className={`rounded-[4px] px-2.5 py-1 text-[12px] transition-colors ${
         active
-          ? "bg-[var(--color-panel-raised)] text-[var(--color-engrave)]"
-          : "text-[var(--color-engrave-faint)] hover:text-[var(--color-engrave-dim)]"
+          ? "bg-[var(--color-surface)] text-[var(--color-ink)] shadow-[0_1px_2px_rgba(22,23,26,0.08)]"
+          : "text-[var(--color-ink-faint)] hover:text-[var(--color-ink-muted)]"
       }`}
     >
       {children}
     </button>
-  );
-}
-
-/** Numerals are engineered objects: tabular, fixed width, mono. */
-function Readout({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-baseline gap-2">
-      <dt className="vx-legend text-[10px] text-[var(--color-engrave-faint)]">{label}</dt>
-      <dd className="font-mono text-[11px] tabular-nums text-[var(--color-engrave-dim)]">{value}</dd>
-    </div>
   );
 }

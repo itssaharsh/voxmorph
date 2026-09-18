@@ -34,9 +34,11 @@ Two audiences at once, and the design must serve both:
 
 ## Durable constraints (must survive any redesign)
 
-- **Voice is the only content input.** No text field for composing anywhere. The one
-  textarea in the product edits the AI's output — the human gate — and that exception
-  is part of the pitch.
+- **Voice is the only way to compose the message.** You cannot type the thing you
+  want rewritten; that always comes from the microphone. Two narrow exceptions, both
+  deliberate: the editor that corrects the AI's output (the human gate), and the
+  custom channel's audience description, which can be typed or dictated. Neither
+  writes the message — one corrects a rewrite, the other names a reader.
 - **Hold-to-talk, not tap-to-toggle.** Press-and-hold with a ring driven by real mic
   RMS. This gesture is the signature interaction.
 - **The verbatim/cleaned diff stays prominent and legible.** It is the single most
@@ -46,8 +48,9 @@ Two audiences at once, and the design must serve both:
   labelled as a saved response. Transparency is a judging asset, not clutter.
 - **Everything on screen is real API output.** No canned rewrites, no fake latency,
   no invented metrics.
-- Six audiences: a baseline plus boss / team / public / technical / family, with
-  optional wildcard instructions fired against audio already held in memory.
+- Six audiences: a baseline plus boss / team / public / technical / family, plus a
+  custom channel the listener defines, plus wildcard presets. All of them run against
+  audio already held in memory, so a new channel never costs another recording.
 - 19 languages via `language_codes`; speak one, read another.
 - Accessibility: keyboard path for recording (hold Space), visible focus, live
   regions for streamed results, `prefers-reduced-motion` honoured.

@@ -1,5 +1,6 @@
 import {
-  AUDIENCES, getAudience, WILDCARDS, BASELINE_ID,
+  AUDIENCES, getAudience, WILDCARDS, BASELINE_ID, CUSTOM_ID,
+  buildCustomInstruction, sanitizeAudience,
   type Audience, type AudienceId,
 } from "@/config/audiences";
 import {
@@ -47,14 +48,24 @@ type Job = { id: string; label: string; llm_instruction: string | null };
 const KNOWN_TRUNCATING_INSTRUCTION =
   "Expand this into a detailed thousand-word formal report with an executive summary, background section, methodology, findings, risk analysis, and appendix.";
 
-function resolveJobs(param: string | null): Job[] {
+function resolveJobs(param: string | null, custom: string | null): Job[] {
   if (!param) return AUDIENCES.map((a: Audience) => ({ id: a.id, label: a.label, llm_instruction: a.llm_instruction }));
   const jobs: Job[] = [];
   for (const id of param.split(",").map((s) => s.trim()).filter(Boolean)) {
     const a = getAudience(id);
     if (a) { jobs.push({ id: a.id, label: a.label, llm_instruction: a.llm_instruction }); continue; }
     const w = WILDCARDS.find((x) => x.id === id);
-    if (w) jobs.push({ id: w.id, label: w.label, llm_instruction: w.llm_instruction });
+    if (w) { jobs.push({ id: w.id, label: w.label, llm_instruction: w.llm_instruction }); continue; }
+    // The only channel whose instruction is derived from user input. The text is
+    // never the instruction; buildCustomInstruction interpolates it into a fixed
+    // template and bounds the output length.
+    if (id === CUSTOM_ID && custom && custom.trim()) {
+      jobs.push({
+        id: CUSTOM_ID,
+        label: sanitizeAudience(custom).slice(0, 32) || "Custom",
+        llm_instruction: buildCustomInstruction(custom),
+      });
+    }
   }
   return jobs.length ? jobs : AUDIENCES.map((a) => ({ id: a.id, label: a.label, llm_instruction: a.llm_instruction }));
 }
@@ -91,7 +102,7 @@ export async function POST(req: Request) {
   const stream = url.searchParams.get("stream") !== "0";
   const langParam = url.searchParams.get("lang") ?? "en";
   const language = (ALL_LANGUAGE_CODES as readonly string[]).includes(langParam) ? langParam : "en";
-  const jobs = resolveJobs(url.searchParams.get("audiences"));
+  const jobs = resolveJobs(url.searchParams.get("audiences"), url.searchParams.get("custom"));
   // Demo affordance: induce a genuine rewrite failure on one channel so the relay
   // and retry states can be filmed without waiting for a real 429 on camera.
   if (url.searchParams.get("demo") === "fail") {

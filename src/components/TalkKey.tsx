@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef } from "react";
-import { Loader2, Mic } from "lucide-react";
+import { Loader2, Mic, Square } from "lucide-react";
 import type { RecorderStatus } from "@/hooks/useRecorder";
 
 type Props = {
@@ -12,14 +12,11 @@ type Props = {
   onStop: () => void;
 };
 
-const R = 34;
+const R = 33;
 const CIRC = 2 * Math.PI * R;
 
-/**
- * The delegate's microphone key. Held, not toggled, exactly as it is at the desk.
- * The ring is a level arc driven by real RMS, so the only moving thing on the
- * console reports something true.
- */
+/** Hold to talk. The ring is a level arc driven by real microphone RMS, so the
+ *  one moving thing on the page is reporting something true. */
 export function TalkKey({ status, level, busy, recordingMs, onStart, onStop }: Props) {
   const activeId = useRef<number | null>(null);
   const spaceDown = useRef(false);
@@ -60,18 +57,19 @@ export function TalkKey({ status, level, busy, recordingMs, onStart, onStop }: P
   }, [onStart, onStop]);
 
   return (
-    <div className="vx-deck pointer-events-none fixed inset-x-0 bottom-0 z-40 flex flex-col items-center gap-2.5 pt-10 pb-7">
-      <div className="h-5 text-[13px]">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex flex-col items-center gap-3 pt-28 pb-8
+                    [background:linear-gradient(180deg,transparent_0%,color-mix(in_srgb,var(--color-paper)_80%,transparent)_18%,var(--color-paper)_34%,var(--color-paper)_100%)]">
+      <p className="h-5 text-[14px]">
         {recording ? (
-          <span className="relative text-[var(--color-live-text)]">
-            MIC LIVE <span className="font-mono tabular-nums">{(recordingMs / 1000).toFixed(1)}s</span> · release to send
+          <span className="text-[var(--color-accent-text)]">
+            Listening · <span className="font-mono tabular-nums">{(recordingMs / 1000).toFixed(1)}s</span>
           </span>
         ) : working ? (
-          <span className="relative text-[var(--color-engrave-dim)]">patching channels</span>
+          <span className="text-[var(--color-ink-muted)]">Writing the channels…</span>
         ) : (
-          <span className="relative text-[var(--color-engrave-faint)]">hold to talk · or hold Space</span>
+          <span className="text-[var(--color-ink-faint)]">Hold to talk, or hold Space</span>
         )}
-      </div>
+      </p>
 
       <button
         type="button"
@@ -84,57 +82,35 @@ export function TalkKey({ status, level, busy, recordingMs, onStart, onStop }: P
         onLostPointerCapture={up}
         onContextMenu={(e) => e.preventDefault()}
         onDragStart={(e) => e.preventDefault()}
-        className="group pointer-events-auto relative grid size-[84px] place-items-center rounded-full transition-transform duration-100 active:translate-y-[2px] disabled:cursor-wait"
+        className="pointer-events-auto relative grid size-[76px] place-items-center rounded-full transition-transform duration-100 active:translate-y-[2px] disabled:cursor-wait"
         style={{
-          touchAction: "none",
-          userSelect: "none",
-          WebkitUserSelect: "none",
-          WebkitTouchCallout: "none",
-          WebkitTapHighlightColor: "transparent",
+          touchAction: "none", userSelect: "none", WebkitUserSelect: "none",
+          WebkitTouchCallout: "none", WebkitTapHighlightColor: "transparent",
+          background: working ? "var(--color-sunk)" : "var(--color-accent)",
+          color: working ? "var(--color-ink-faint)" : "#FFFFFF",
+          boxShadow: working
+            ? "none"
+            : recording
+              ? "0 0 0 6px var(--color-accent-wash), 0 8px 22px rgba(217,58,30,0.32)"
+              : "0 2px 10px rgba(217,58,30,0.28)",
         }}
       >
-        {/* Machined key body: lit top bevel, dark seat below. */}
-        <span
-          aria-hidden
-          className="absolute inset-0 rounded-full"
-          style={{
-            background: recording
-              ? "linear-gradient(180deg, #F07A55 0%, var(--color-live) 55%, #A83A1C 100%)"
-              : "linear-gradient(180deg, #47787F 0%, var(--color-panel-raised) 48%, #0E2023 100%)",
-            boxShadow: recording
-              ? "0 2px 0 #8C2F16, 0 10px 22px rgba(228,87,46,0.30), inset 0 1px 0 rgba(255,255,255,0.30)"
-              : "0 3px 0 #0A1719, 0 10px 20px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.16), 0 0 0 1px color-mix(in oklab, var(--color-live) 55%, transparent)",
-          }}
-        />
-
-        {/* Level arc: real RMS, not an animation. */}
-        <svg
-          aria-hidden
-          viewBox="0 0 84 84"
-          className="absolute inset-0 size-full -rotate-90"
-        >
-          <circle
-            cx="42" cy="42" r={R} fill="none"
-            stroke="rgba(255,255,255,0.10)" strokeWidth="2"
-          />
+        <svg aria-hidden viewBox="0 0 76 76" className="absolute inset-0 size-full -rotate-90">
           {recording && (
             <circle
-              cx="42" cy="42" r={R} fill="none"
-              stroke="#FFD9C9" strokeWidth="2" strokeLinecap="round"
+              cx="38" cy="38" r={R} fill="none"
+              stroke="rgba(255,255,255,0.9)" strokeWidth="2.5" strokeLinecap="round"
               strokeDasharray={CIRC}
               strokeDashoffset={CIRC * (1 - Math.min(1, level))}
               style={{ transition: "stroke-dashoffset 90ms linear" }}
             />
           )}
         </svg>
-
-        <span className={`relative ${recording ? "text-[#2B0F06]" : "text-[var(--color-live-text)]"}`}>
-          {working ? (
-            <Loader2 className="size-6 animate-spin" aria-hidden style={{ pointerEvents: "none" }} />
-          ) : (
-            <Mic className="size-6" aria-hidden style={{ pointerEvents: "none" }} />
-          )}
-        </span>
+        {working
+          ? <Loader2 className="size-6 animate-spin" aria-hidden style={{ pointerEvents: "none" }} />
+          : recording
+            ? <Square className="size-5 fill-current" aria-hidden style={{ pointerEvents: "none" }} />
+            : <Mic className="size-6" aria-hidden style={{ pointerEvents: "none" }} />}
       </button>
     </div>
   );

@@ -33,6 +33,12 @@ export const HEARTBEAT_MS = 10_000;
 export const MIN_CALL_TIMEOUT_MS = 25_000;
 export const MAX_CALL_TIMEOUT_MS = 90_000;
 
+/** A user-supplied audience description is capped well under the API's 2048-char
+ *  llm_instruction limit. It is never sent as the instruction; it is interpolated
+ *  into a fixed template (see buildCustomInstruction) so the instruction's shape
+ *  stays ours. */
+export const MAX_CUSTOM_AUDIENCE_CHARS = 120;
+
 /** Below this, a word gets the amber dotted underline. */
 export const LOW_CONFIDENCE = 0.7;
 
