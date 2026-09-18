@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow, Barlow_Condensed, Azeret_Mono } from "next/font/google";
 import "./globals.css";
+import { Ocean } from "@/components/Ocean";
 
 const barlow = Barlow({
   subsets: ["latin"], weight: ["400", "500", "600"],
@@ -71,6 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             so it ships inside an inert hidden node to stay auditable in the built
             HTML, per the skill's "survives the production build" rule. */}
         <div hidden dangerouslySetInnerHTML={{ __html: DIRECTION_CONTRACT }} />
+        <Ocean />
         {children}
       </body>
     </html>

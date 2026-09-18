@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AudioCtxCtor, blobToWav16k, pickMimeType } from "@/lib/audio/wav";
 import { MIN_RECORD_MS, MAX_RECORD_MS } from "@/config/constants";
+import { mic } from "@/lib/micLevel";
 
 export type RecorderStatus = "idle" | "requesting" | "recording" | "encoding" | "denied" | "unsupported";
 
@@ -37,6 +38,8 @@ export function useRecorder(onError?: (msg: string) => void) {
   const stopMeter = useCallback(() => {
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     rafRef.current = null;
+    mic.level = 0;
+    mic.active = false;
     setLevel(0);
   }, []);
 
@@ -58,6 +61,7 @@ export function useRecorder(onError?: (msg: string) => void) {
     const analyser = analyserRef.current;
     if (!analyser) return;
     const data = new Uint8Array(analyser.fftSize);
+    let n = 0;
     const tick = () => {
       analyser.getByteTimeDomainData(data);
       let sum = 0;
@@ -65,7 +69,12 @@ export function useRecorder(onError?: (msg: string) => void) {
         const v = (data[i] - 128) / 128;
         sum += v * v;
       }
-      setLevel(Math.min(1, Math.sqrt(sum / data.length) * 3.2));
+      const lvl = Math.min(1, Math.sqrt(sum / data.length) * 3.2);
+      // The background reads this every frame without costing a React render.
+      mic.level = lvl;
+      // The button's ring only needs ~20fps, and re-rendering the tree at 60
+      // would re-render every channel while recording.
+      if (n++ % 3 === 0) setLevel(lvl);
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
@@ -131,6 +140,7 @@ export function useRecorder(onError?: (msg: string) => void) {
     recRef.current = rec;
     startedAtRef.current = performance.now();
     rec.start();
+    mic.active = true;
     setStatus("recording");
 
     autoStopRef.current = setTimeout(() => { void stop(); }, MAX_RECORD_MS);

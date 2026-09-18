@@ -1,6 +1,5 @@
 "use client";
 import { useCallback, useReducer, useRef, useState } from "react";
-import { Aurora } from "./Aurora";
 import { ChannelSkeleton, ChannelStrip } from "./ChannelStrip";
 import { CustomChannel } from "./CustomChannel";
 import { FloorFeed } from "./FloorFeed";
@@ -93,7 +92,6 @@ export function CommandCenter({ seed, forceJson, demoFail }: {
 
   return (
     <>
-    <Aurora level={recorder.level} active={recorder.status === "recording" || busy} />
     <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col px-4 pb-44 sm:px-6">
       <header className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 py-7">
         <h1 className="bg-gradient-to-r from-white via-[#D9CCFF] to-[#7FE3F5] bg-clip-text text-[22px] font-semibold tracking-[-0.03em] text-transparent">
